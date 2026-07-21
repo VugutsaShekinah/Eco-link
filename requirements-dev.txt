@@ -1,0 +1,8 @@
+# Development-only tools (not needed to run the ECO-LINK app itself).
+-r requirements.txt
+
+# Renders the study-notes HTML into ECO-LINK_Development_Notes.pdf
+xhtml2pdf>=0.2.17
+
+# Test coverage (report §4.5.1)
+coverage>=7.0

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4; margin: 1.6cm; }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 10.5pt; color: #1a2b1a; line-height: 1.45; }
+    h1 { color: #14532d; font-size: 21pt; margin: 0 0 2px 0; }
+    h2 { color: #166534; font-size: 15pt; border-bottom: 2px solid #22c55e; padding-bottom: 3px; margin-top: 18px; }
+    h3 { color: #15803d; font-size: 12pt; margin: 12px 0 4px 0; }
+    .sub { color: #4b5563; font-size: 9.5pt; margin: 0 0 10px 0; }
+    .tag { background: #dcfce7; color: #166534; font-size: 8pt; padding: 2px 6px; border-radius: 3px; font-weight: bold; }
+    .box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 4px; padding: 8px 10px; margin: 8px 0; }
+    .tip { background: #fefce8; border-left: 4px solid #eab308; padding: 6px 10px; margin: 8px 0; }
+    .warn { background: #fef2f2; border-left: 4px solid #ef4444; padding: 6px 10px; margin: 8px 0; }
+    .flow { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 10px; font-family: Courier, monospace; font-size: 9pt; color: #0f172a; white-space: pre; }
+    code { font-family: Courier, monospace; background: #f1f5f9; padding: 1px 3px; font-size: 9pt; color: #b91c1c; }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9.5pt; }
+    th { background: #16a34a; color: #fff; text-align: left; padding: 5px 7px; }
+    td { border: 1px solid #d1d5db; padding: 5px 7px; vertical-align: top; }
+    tr:nth-child(even) td { background: #f9fafb; }
+    .q { font-weight: bold; color: #14532d; margin-top: 8px; }
+    .a { margin: 2px 0 6px 0; }
+    ul { margin: 4px 0 8px 0; padding-left: 18px; }
+    li { margin: 2px 0; }
+    .pagebreak { page-break-before: always; }
+    .footer { color: #9ca3af; font-size: 8pt; text-align: center; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<h1>ECO-LINK - Development Notes</h1>
+<p class="sub">A Web-Based Plastic Waste Management System | Django 5.2 + PostgreSQL | Riara University BBIT Final-Year Project | Revision &amp; viva prep</p>
+
+<div class="box">
+<b>How to read these notes:</b> each milestone has the same layout - Purpose, How it works, Files, DB, a flow diagram, key Django concepts, and <b>viva questions with model answers</b>. Green = concept, <span class="tip" style="padding:0 4px;">yellow</span> = tip, <span class="warn" style="padding:0 4px;">red</span> = common mistake.
+</div>
+
+<!-- =================== MILESTONE 0 =================== -->
+<h2>Milestone 0 - Project Setup &amp; Custom User Model <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li>A Django 5.2 project <code>ecolink</code> and an app <code>accounts</code>.</li>
+    <li>A <b>custom User model</b> that logs in by <b>email</b> (not username), with a <code>role</code>, <code>status</code>, and <code>eco_points_balance</code>.</li>
+    <li>PostgreSQL connected via a git-ignored <code>.env</code> file (using python-dotenv).</li>
+    <li>Git repository initialised; admin site working; superuser created.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>The report requires 4 user roles and email login (§3.2.3.1, §4.3.1). Django's default user logs in by username, so we <b>must</b> customise it.</li>
+    <li>The User model <b>must</b> be finalised <b>before the first migration</b> - changing it later means resetting the database.</li>
+</ul>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Project vs App</b></td><td>Project = the whole website (<code>ecolink</code>). App = one feature area (<code>accounts</code>).</td></tr>
+<tr><td><b>AbstractUser</b></td><td>A ready-made user class we <b>extend</b> to add our own fields.</td></tr>
+<tr><td><b>Custom Manager</b></td><td><code>User.objects</code> - teaches Django how to create users by email instead of username.</td></tr>
+<tr><td><b>AUTH_USER_MODEL</b></td><td>Setting that tells Django "use my User, not the built-in one".</td></tr>
+<tr><td><b>Migration</b></td><td>A file that turns a Python model into a real database table.</td></tr>
+<tr><td><b>TextChoices</b></td><td>A tidy way to define a fixed list of options (the 4 roles, 3 statuses).</td></tr>
+<tr><td><b>.env + dotenv</b></td><td>Keeps secrets (DB password) out of the code and out of Git.</td></tr>
+</table>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>ecolink/settings.py</code></td><td>Central config: apps, PostgreSQL, <code>AUTH_USER_MODEL</code>, Nairobi timezone, reads <code>.env</code>.</td></tr>
+<tr><td><code>accounts/models.py</code></td><td>The <code>User</code> model + <code>UserManager</code> (the star of this milestone).</td></tr>
+<tr><td><code>accounts/admin.py</code></td><td>Makes our email-based User editable in Django admin.</td></tr>
+<tr><td><code>accounts/migrations/0001_initial.py</code></td><td>Auto-generated; creates the <code>accounts_user</code> table.</td></tr>
+<tr><td><code>.env</code> / <code>.env.example</code></td><td>Real secrets (ignored) / safe template (committed).</td></tr>
+</table>
+
+<h3>Request &amp; setup flow</h3>
+<div class="flow">Setup order (why it matters)
+
+  Define User model  ->  set AUTH_USER_MODEL  ->  makemigrations  ->  migrate
+        (accounts)          (settings.py)         (creates 0001)    (builds table)
+
+Login flow (email-based)
+
+  Browser  ->  /admin/login/  ->  authenticate(email, password)
+     |                                    |
+     |                          UserManager finds user by email
+     |                                    |
+     |                          check_password() (PBKDF2 hash)
+     v                                    v
+  Session cookie set  <-------------  login OK</div>
+
+<h3>Database changes</h3>
+<ul>
+    <li>New table <code>accounts_user</code> with columns: <code>email</code> (unique), <code>role</code>, <code>status</code>, <code>eco_points_balance</code>, <code>phone_number</code>, plus inherited auth fields (<code>password</code>, <code>is_staff</code>, ...). No <code>username</code> column.</li>
+    <li>Superuser row: <code>admin@ecolink.co.ke</code>, role = Administrator, status = Active.</li>
+</ul>
+
+<div class="tip"><b>Remember:</b> the password is stored <b>hashed</b> (PBKDF2-SHA256), never in plain text - this is the "Private" part of the report's RAPID principle.</div>
+
+<div class="warn"><b>Common mistake:</b> running <code>migrate</code> <i>before</i> setting <code>AUTH_USER_MODEL</code>. Django then locks in the default user and you have to drop the database to fix it. Always set the custom user first.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. Why did you build a custom User model instead of using Django's default?</p>
+<p class="a">Because the system logs in by email and needs a role and an eco-points balance on every user. Django's default user logs in by username and has no such fields, so I extended <code>AbstractUser</code>, removed <code>username</code>, made <code>email</code> the login field, and added <code>role</code>, <code>status</code>, and <code>eco_points_balance</code>.</p>
+
+<p class="q">Q2. What is a migration?</p>
+<p class="a">A migration is a Python file Django generates from my models that describes the exact database changes to make. <code>makemigrations</code> writes it; <code>migrate</code> runs it against PostgreSQL to create or alter tables.</p>
+
+<p class="q">Q3. Why is the database password not in your code?</p>
+<p class="a">It lives in a <code>.env</code> file that is listed in <code>.gitignore</code>, so it never reaches GitHub. <code>settings.py</code> reads it at runtime with python-dotenv. This is a security best practice and directly supports the report's "Private/Accountable" RAPID goals.</p>
+
+<p class="q">Q4. What does the custom UserManager do?</p>
+<p class="a">It teaches Django how to create users and superusers using an email as the identifier instead of a username - normalising the email, hashing the password, and setting sensible defaults (e.g. a superuser gets the Administrator role).</p>
+
+<p class="q">Q5. What is role-based access control here, at the model level?</p>
+<p class="a">Every user carries a <code>role</code> field (Student, Staff, Community, Administrator). Later views check this - the <code>is_administrator</code> property is a convenience for those checks - so only administrators can reach admin-only pages.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>6 models total will exist: <b>User, DropOff, Hub, Reward, Redemption, Manufacturer.</b></li>
+    <li>Stack: Python 3.14, Django 5.2 LTS, PostgreSQL 18, Bootstrap 5, Git.</li>
+    <li>Eco-points rule (coming up): <b>10 points per kg</b>, awarded only after an admin <b>verifies</b> a drop-off.</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestone 0 complete.</p>
+
+</body>
+</html>
