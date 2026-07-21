@@ -1,0 +1,6 @@
+# Normalise line endings so Git stops warning about LF/CRLF on Windows.
+* text=auto
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf

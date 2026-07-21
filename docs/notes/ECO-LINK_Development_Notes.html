@@ -124,7 +124,93 @@ Login flow (email-based)
     <li>Eco-points rule (coming up): <b>10 points per kg</b>, awarded only after an admin <b>verifies</b> a drop-off.</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestone 0 complete.</p>
+<!-- =================== MILESTONE 1 =================== -->
+<h2 class="pagebreak">Milestone 1 - Accounts: Register, Login, RBAC <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li><b>Registration</b> with Student / Staff / Community <b>role tabs</b> (Administrator cannot self-register).</li>
+    <li><b>Email login and logout</b> using Django's built-in auth views.</li>
+    <li>A <b>dashboard</b> landing page (eco-points, status; history comes later).</li>
+    <li><b>Role-based access control</b> via an <code>admin_required</code> decorator.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>This is Specific Objective 1. Every later feature needs a logged-in, role-tagged user.</li>
+    <li>Blocking Administrator self-registration protects the most powerful role (report §3.2.3.1).</li>
+</ul>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>View</b></td><td>A Python function that takes a request and returns a response (a page).</td></tr>
+<tr><td><b>Form</b></td><td>Validates and cleans user input before it touches the database.</td></tr>
+<tr><td><b>UserCreationForm</b></td><td>Django's ready-made sign-up form (2 password fields + strength checks) we extend.</td></tr>
+<tr><td><b>URL name</b></td><td>A nickname (e.g. <code>'dashboard'</code>) so templates/redirects never hard-code paths.</td></tr>
+<tr><td><b>Template inheritance</b></td><td><code>base.html</code> holds the shared shell; pages fill <code>{% block content %}</code>.</td></tr>
+<tr><td><b>@login_required</b></td><td>A decorator that bounces anonymous visitors to the login page.</td></tr>
+<tr><td><b>CSRF token</b></td><td>A hidden token proving the form was submitted from our own site (anti-forgery).</td></tr>
+</table>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>accounts/forms.py</code></td><td>RegistrationForm (role tabs, blocks admin) + EmailAuthenticationForm.</td></tr>
+<tr><td><code>accounts/views.py</code></td><td><code>home</code>, <code>register</code>, <code>dashboard</code>.</td></tr>
+<tr><td><code>accounts/decorators.py</code></td><td><code>admin_required</code> - reusable RBAC guard.</td></tr>
+<tr><td><code>accounts/urls.py</code> / <code>ecolink/urls.py</code></td><td>Route URLs; login/logout use built-in views.</td></tr>
+<tr><td><code>templates/base.html</code> + accounts/*.html</td><td>Shared shell + register/login/dashboard pages.</td></tr>
+</table>
+
+<h3>Registration flow</h3>
+<div class="flow">User clicks role tab (Student/Staff/Community)
+        |  (JS writes value into hidden `role` field)
+        v
+  Fill name, email, password  ->  Submit (POST + CSRF token)
+        |
+        v
+  RegistrationForm.is_valid()  --- invalid --->  re-render page with errors
+        |  valid
+        v
+  form.save()  ->  password hashed (PBKDF2)  ->  row in accounts_user
+        |
+        v
+  login(request, user)  ->  session cookie  ->  redirect to dashboard</div>
+
+<h3>Database changes</h3>
+<ul>
+    <li>No schema change this milestone - we only <b>create rows</b> in the existing <code>accounts_user</code> table.</li>
+</ul>
+
+<div class="tip"><b>Remember:</b> the role tabs are just UI. The real safety net is the form's <code>role</code> field only accepting the 3 public roles, so a hand-crafted POST asking for <code>ADMIN</code> is rejected server-side.</div>
+
+<div class="warn"><b>Common mistake:</b> trusting the browser. Never rely on JS/hidden fields alone for security - always validate on the server (we test exactly this in <code>test_cannot_self_register_as_administrator</code>).</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. Walk me through what happens when a user registers.</p>
+<p class="a">They pick a role tab, fill name/email/password and submit a POST with a CSRF token. The RegistrationForm validates it (unique email, matching strong passwords, allowed role). On success it saves the user with the password hashed, logs them in, and redirects to the dashboard. On failure the page re-renders with error messages.</p>
+
+<p class="q">Q2. How do you stop someone registering as an Administrator?</p>
+<p class="a">The form's role field only offers the three public roles, so any other value fails validation on the server - not just hidden in the UI. Admins are created by existing admins through the Django admin instead.</p>
+
+<p class="q">Q3. What is CSRF and how do you protect against it?</p>
+<p class="a">Cross-Site Request Forgery tricks a logged-in user's browser into submitting a request they didn't intend. Django's CSRF middleware plus the <code>{% csrf_token %}</code> tag put a secret token in every form and verify it on submit, so forged requests are rejected.</p>
+
+<p class="q">Q4. How does login redirect work?</p>
+<p class="a"><code>@login_required</code> and <code>LOGIN_URL</code> send anonymous users to <code>/login/</code>; after a successful login Django redirects to <code>LOGIN_REDIRECT_URL</code> (the dashboard). It's all driven by URL names, so paths aren't hard-coded.</p>
+
+<p class="q">Q5. Why reuse Django's built-in Login/Logout views?</p>
+<p class="a">They already handle sessions, security, and edge cases correctly. Re-writing that by hand would be error-prone. We only customised the form (to use email) and the template.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Role tabs = UI; the <b>form field</b> is the real gate. Validate on the server, always.</li>
+    <li>Login is by <b>email</b>; the login form's field is named <code>username</code> internally but accepts the email.</li>
+    <li>Tested: register, duplicate-email, admin-block, email login, logout, auth guard (6/6 pass).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-1 complete.</p>
 
 </body>
 </html>
