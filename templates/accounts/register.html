@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Register &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h3 class="text-center mb-1" style="color:#14532d;">Create your account</h3>
+        <p class="text-center text-muted small mb-4">Join ECO-LINK and start earning eco-points for recycling.</p>
+
+        <!-- Role selection tabs (report Figure 8). The active tab writes its
+             value into the hidden `role` field below. -->
+        <label class="form-label small fw-semibold">I am registering as:</label>
+        <ul class="nav nav-pills nav-fill mb-4" id="roleTabs">
+          <li class="nav-item">
+            <button type="button" class="nav-link active" data-role="STUDENT">Student</button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link" data-role="STAFF">Staff</button>
+          </li>
+          <li class="nav-item">
+            <button type="button" class="nav-link" data-role="COMMUNITY">Community</button>
+          </li>
+        </ul>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <!-- Hidden field driven by the tabs above -->
+          {{ form.role }}
+
+          <div class="row g-2 mb-2">
+            <div class="col">
+              {{ form.first_name }}
+              {% for e in form.first_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col">
+              {{ form.last_name }}
+              {% for e in form.last_name.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-2">
+            {{ form.email }}
+            {% for e in form.email.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-2">
+            {{ form.password1 }}
+            {% for e in form.password1.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            {{ form.password2 }}
+            {% for e in form.password2.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-success w-100">Create account</button>
+        </form>
+
+        <p class="text-center text-muted small mt-3 mb-0">
+          Already have an account? <a href="{% url 'login' %}">Log in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Role tabs -> hidden `id_role` field. Works as progressive enhancement:
+  // if JS is off, the field keeps its default (Student).
+  (function () {
+    var roleField = document.getElementById("id_role");
+    var tabs = document.querySelectorAll("#roleTabs .nav-link");
+    tabs.forEach(function (tab) {
+      tab.addEventListener("click", function () {
+        tabs.forEach(function (t) { t.classList.remove("active"); });
+        tab.classList.add("active");
+        roleField.value = tab.getAttribute("data-role");
+      });
+    });
+  })();
+</script>
+{% endblock %}

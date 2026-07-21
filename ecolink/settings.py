@@ -111,6 +111,14 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
+# Map Django's message levels onto Bootstrap 5 alert classes
+# (Django emits "error", Bootstrap expects "danger").
+from django.contrib.messages import constants as message_constants  # noqa: E402
+
+MESSAGE_TAGS = {
+    message_constants.ERROR: "danger",
+}
+
 
 # Internationalization — ECO-LINK operates in Nairobi, Kenya.
 LANGUAGE_CODE = "en-us"

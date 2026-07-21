@@ -1,0 +1,22 @@
+/* ECO-LINK custom styles. Bootstrap 5 does the heavy lifting; this file holds
+   small brand touches. Expanded in Milestone 7 (styling). */
+
+:root {
+    --eco-green: #16a34a;
+    --eco-green-dark: #14532d;
+}
+
+/* Green accent for the role-selection pills on the registration page */
+#roleTabs .nav-link {
+    color: var(--eco-green-dark);
+    cursor: pointer;
+}
+
+#roleTabs .nav-link.active {
+    background-color: var(--eco-green);
+    color: #fff;
+}
+
+.card {
+    border-radius: 10px;
+}
