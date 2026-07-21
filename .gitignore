@@ -1,0 +1,35 @@
+# ECO-LINK — files that must never be committed
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment secrets (DB password, secret key)
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+/staticfiles/
+/media/
+
+# Test / coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
