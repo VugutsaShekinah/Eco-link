@@ -774,7 +774,119 @@ coverage html                        # optional: browsable HTML report</div>
     <li>Seeds are idempotent and tested; run with <code>coverage run manage.py test</code>.</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-8 complete.</p>
+<!-- =================== MILESTONE 9 =================== -->
+<h2 class="pagebreak">Milestone 9 - Docs &amp; Deployment <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li><b>README.md</b> - what the project is, how to set it up from a fresh clone, how to test.</li>
+    <li><b>DEPLOYMENT.md</b> - how to host it in production (Gunicorn + Nginx + PostgreSQL).</li>
+    <li><b>Production security settings</b> that switch on automatically when DEBUG is off.</li>
+</ul>
+
+<h3>How the pieces fit in production</h3>
+<div class="flow">Browser
+   |  HTTPS
+   v
+Nginx  --- serves /static/ files directly
+   |   --- proxies everything else
+   v
+Gunicorn  (runs Django via WSGI, 3 workers)
+   |
+   v
+PostgreSQL</div>
+
+<h3>Concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>WSGI</b></td><td>The standard interface between a Python web app and a web server (Gunicorn).</td></tr>
+<tr><td><b>Gunicorn</b></td><td>The application server that actually runs Django in production (not runserver).</td></tr>
+<tr><td><b>Nginx (reverse proxy)</b></td><td>Faces the internet: handles HTTPS and static files, forwards the rest to Gunicorn.</td></tr>
+<tr><td><b>collectstatic</b></td><td>Gathers all CSS/JS into one folder (<code>staticfiles/</code>) for Nginx to serve.</td></tr>
+<tr><td><b>DEBUG=False</b></td><td>Production mode - hides error details and turns on the security settings.</td></tr>
+<tr><td><b>Environment variables</b></td><td>Secrets (DB password, SECRET_KEY) live in <code>.env</code>, never in code or Git.</td></tr>
+</table>
+
+<div class="tip"><b>Why runserver isn't for production:</b> Django's <code>runserver</code> is a lightweight dev tool - single-threaded and not hardened. Production uses Gunicorn (multiple workers) behind Nginx for speed and security.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How would you deploy ECO-LINK?</p>
+<p class="a">On an Ubuntu server: PostgreSQL for data, Gunicorn running Django through WSGI, and Nginx in front handling HTTPS and serving static files. Secrets come from a <code>.env</code> file, <code>DEBUG</code> is False, and Let's Encrypt provides the certificate.</p>
+
+<p class="q">Q2. How are secrets kept out of the codebase?</p>
+<p class="a">They live in a <code>.env</code> file that's listed in <code>.gitignore</code>, so it's never committed. Django reads them at startup via python-dotenv. The repo ships a <code>.env.example</code> template with no real values.</p>
+
+<p class="q">Q3. What changes between development and production?</p>
+<p class="a"><code>DEBUG</code> flips to False, which hides error pages and automatically enables HTTPS redirect, secure cookies, and HSTS. Static files are collected and served by Nginx, and the app runs under Gunicorn instead of runserver.</p>
+
+<p class="q">Q4. How do the security non-functional requirements get met?</p>
+<p class="a">Passwords are hashed with PBKDF2, forms are CSRF-protected, role-based access control guards admin views, and in production all traffic is forced over HTTPS with secure cookies and HSTS.</p>
+
+<!-- =================== PROJECT SUMMARY =================== -->
+<h2 class="pagebreak">Project Summary - ECO-LINK Complete <span class="tag">DONE</span></h2>
+
+<h3>All nine milestones</h3>
+<table>
+<tr><th>#</th><th>Milestone</th><th>Delivers</th></tr>
+<tr><td>0</td><td>Setup</td><td>Django project, PostgreSQL, custom User, Git.</td></tr>
+<tr><td>1</td><td>Accounts</td><td>Register (role tabs), email login, RBAC. <b>Objective 1</b></td></tr>
+<tr><td>2</td><td>Hubs &amp; Manufacturers</td><td>Collection points + certified recyclers.</td></tr>
+<tr><td>3</td><td>Drop-offs &amp; Eco-points</td><td>Logging, live preview, verification signal. <b>Objective 2</b></td></tr>
+<tr><td>4</td><td>Rewards</td><td>Catalogue + atomic redemption.</td></tr>
+<tr><td>5</td><td>Admin dashboard</td><td>Live stats, verify queue, user mgmt. <b>Objective 3</b></td></tr>
+<tr><td>6</td><td>Leaderboard</td><td>Ranking + impact figures.</td></tr>
+<tr><td>7</td><td>Styling</td><td>Landing page + green theme.</td></tr>
+<tr><td>8</td><td>Testing</td><td>54 tests, 97% coverage.</td></tr>
+<tr><td>9</td><td>Docs &amp; Deploy</td><td>README, deployment guide, prod settings.</td></tr>
+</table>
+
+<h3>The whole system in one diagram</h3>
+<div class="flow">User registers (Student/Staff/Community)
+      |
+      v
+Logs a drop-off at the Main Gate hub  --(live preview: kg x 10)-->  PENDING
+      |
+Admin verifies  --(post_save signal)-->  VERIFIED, points awarded
+      |
+      +--> Dashboard: balance + history + rank
+      +--> Leaderboard: ranked, impact figures
+      +--> Rewards: redeem (atomic deduct) --> Redemption recorded</div>
+
+<h3>The six database tables</h3>
+<div class="flow">User (email, role, status, eco_points_balance)
+  |            |
+  | 1        * | 1
+  v            v
+DropOff       Redemption
+  | *           | *
+  | 1           | 1
+  v             v
+Hub           Reward
+  | *
+  | 1
+  v
+Manufacturer</div>
+
+<h3>RAPID principles (viva favourite)</h3>
+<table>
+<tr><th>Principle</th><th>How ECO-LINK shows it</th></tr>
+<tr><td><b>Responsible</b></td><td>One points formula, applied consistently everywhere.</td></tr>
+<tr><td><b>Accountable</b></td><td>Every drop-off is Pending until verified - an audit trail per point.</td></tr>
+<tr><td><b>Private</b></td><td>Passwords hashed (PBKDF2); minimal personal data collected.</td></tr>
+<tr><td><b>Inclusive</b></td><td>Browser-based, no app to install; works on modest devices.</td></tr>
+<tr><td><b>Diverse</b></td><td>Students, staff, and community are all first-class participants.</td></tr>
+</table>
+
+<h3>Final numbers</h3>
+<ul>
+    <li><b>6</b> Django apps, <b>6</b> database tables, <b>4</b> functional objectives - all met.</li>
+    <li><b>54</b> automated tests, <b>97%</b> code coverage.</li>
+    <li>Full earn-and-spend loop working end to end, with an admin dashboard and leaderboard.</li>
+</ul>
+
+<div class="tip"><b>Elevator pitch for your demo:</b> "ECO-LINK rewards recycling. You drop plastic at the hub, log it, and once an admin verifies the weight you earn eco-points - ten per kilogram. Spend them on rewards, and see your rank climb the community leaderboard. Built with Django and PostgreSQL, fully tested, and ready to deploy."</div>
+
+<p class="footer">ECO-LINK Development Notes - project complete. All nine milestones done. 🌿</p>
 
 </body>
 </html>
