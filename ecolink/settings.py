@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # ECO-LINK apps (built milestone by milestone)
     "accounts",
+    "hubs",
 ]
 
 MIDDLEWARE = [
