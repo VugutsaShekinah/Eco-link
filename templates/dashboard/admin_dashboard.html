@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Admin dashboard &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0" style="color:#14532d;">Administrator dashboard</h3>
+  <a href="{% url 'manage_users' %}" class="btn btn-outline-success btn-sm">Manage users</a>
+</div>
+
+<!-- Live statistics (computed via ORM aggregates on every load) -->
+<div class="row g-3 mb-4">
+  {% include "dashboard/_stat.html" with label="Registered users" value=total_users color="success" %}
+  {% include "dashboard/_stat.html" with label="Total drop-offs" value=total_dropoffs color="success" %}
+  {% include "dashboard/_stat.html" with label="Kg collected" value=kg_collected color="success" %}
+  {% include "dashboard/_stat.html" with label="Eco-points awarded" value=points_awarded color="success" %}
+  {% include "dashboard/_stat.html" with label="Pending verification" value=pending_count color="warning" %}
+  {% include "dashboard/_stat.html" with label="Redemptions" value=total_redemptions color="success" %}
+  {% include "dashboard/_stat.html" with label="Active hubs" value=active_hubs color="success" %}
+  {% include "dashboard/_stat.html" with label="Total hubs" value=total_hubs color="success" %}
+</div>
+
+<h5 class="mb-2">Drop-offs awaiting verification</h5>
+<div class="card border-0 shadow-sm mb-3">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th><th>User</th><th>Hub</th><th>Type</th>
+          <th class="text-end">Weight</th><th class="text-end">Points</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in pending_dropoffs %}
+          <tr>
+            <td>{{ d.created_at|date:"d M Y, H:i" }}</td>
+            <td>{{ d.user.email }}</td>
+            <td>{{ d.hub.name }}</td>
+            <td>{{ d.get_plastic_type_display }}</td>
+            <td class="text-end">{{ d.weight_kg }} kg</td>
+            <td class="text-end fw-semibold">{{ d.calculate_points }}</td>
+            <td class="text-end">
+              <form method="post" action="{% url 'verify_dropoff' d.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm">Verify</button>
+              </form>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">
+            🎉 Nothing pending — all drop-offs are verified.
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted small">
+  Manage hubs, rewards, and manufacturers in the
+  <a href="/admin/" target="_blank">Django admin</a>.
+</p>
+{% endblock %}

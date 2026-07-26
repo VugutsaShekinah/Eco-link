@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Manage users &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0" style="color:#14532d;">Manage users</h3>
+  <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-success btn-sm">← Back to dashboard</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Email</th><th>Name</th><th>Role</th>
+          <th class="text-end">Drop-offs</th><th class="text-end">Points</th>
+          <th>Status</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u.email }}</td>
+            <td>{{ u.get_full_name|default:"—" }}</td>
+            <td>{{ u.get_role_display }}</td>
+            <td class="text-end">{{ u.dropoff_count }}</td>
+            <td class="text-end">{{ u.eco_points_balance }}</td>
+            {% if u.is_administrator %}
+              <td colspan="2"><span class="badge bg-warning text-dark">Administrator</span></td>
+            {% else %}
+              <td colspan="2">
+                <form method="post" action="{% url 'set_user_status' u.pk %}"
+                      class="d-flex gap-2 justify-content-end">
+                  {% csrf_token %}
+                  <select name="status" class="form-select form-select-sm" style="max-width:150px;">
+                    {% for value, label in status_choices %}
+                      <option value="{{ value }}" {% if u.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="submit" class="btn btn-outline-success btn-sm">Save</button>
+                </form>
+              </td>
+            {% endif %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4">No users yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

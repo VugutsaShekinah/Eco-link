@@ -16,4 +16,6 @@ urlpatterns = [
     path("dropoffs/", include("dropoffs.urls")),
     # Rewards catalogue and redemption
     path("rewards/", include("rewards.urls")),
+    # Administrator dashboard (admin-only)
+    path("manage/", include("dashboard.urls")),
 ]

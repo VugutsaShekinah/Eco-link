@@ -26,7 +26,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'my_dropoffs' %}">My Drop-offs</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'reward_list' %}">Rewards</a></li>
                     {% if user.is_administrator %}
-                        <li class="nav-item"><span class="badge bg-warning text-dark ms-lg-2">Admin</span></li>
+                        <li class="nav-item"><a class="nav-link fw-semibold" href="{% url 'admin_dashboard' %}">Admin Dashboard</a></li>
                     {% endif %}
                     <li class="nav-item ms-lg-3">
                         <span class="navbar-text text-white-50 small">{{ user.email }}</span>
