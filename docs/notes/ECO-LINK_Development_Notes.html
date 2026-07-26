@@ -401,7 +401,88 @@ redirect to dashboard (shows it as Pending)</div>
     <li>Tested hard: formula, award-once, accumulation, weight validation, view + closed-hub guard (9/9).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-3 complete.</p>
+<!-- =================== MILESTONE 4 =================== -->
+<h2 class="pagebreak">Milestone 4 - Rewards &amp; Redemption <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li><b>Reward</b> model - catalogue items with a points cost (vouchers, certificates...).</li>
+    <li><b>Redemption</b> model - a record of a user spending points on a reward.</li>
+    <li><b>Redeem flow</b> - checks the balance, deducts points, records the transaction - safely.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>Completes the incentive loop: earn points (drop-offs) then <b>spend</b> them (rewards) - §3.2.3.3.</li>
+    <li>Rule: redeem only if <code>balance &gt;= points_required</code>, then deduct.</li>
+</ul>
+
+<h3>Redeem flow (earn vs spend)</h3>
+<div class="flow">EARN  (Milestone 3)             SPEND (Milestone 4)
+verified drop-off              click Redeem (POST)
+   balance += pts                 |
+                          balance &gt;= cost ?  --no--> error, no change
+                                 | yes
+                                 v
+                       balance -= cost
+                       create Redemption record</div>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Transaction (atomic)</b></td><td>A group of DB steps that all succeed or all roll back - never half-done.</td></tr>
+<tr><td><b>select_for_update()</b></td><td>Locks the user's row so two redeems can't run at the same time (no double-spend).</td></tr>
+<tr><td><b>Race condition</b></td><td>Two requests interfering - e.g. double-click redeeming twice. The lock prevents it.</td></tr>
+<tr><td><b>Service function</b></td><td>Business logic (redeem) kept in one place, separate from the view - easy to test.</td></tr>
+<tr><td><b>@require_POST</b></td><td>Redeeming only works via POST, never a GET/link - actions that change data must be POST.</td></tr>
+<tr><td><b>Snapshot field</b></td><td><code>points_spent</code> stores the cost at redeem time, so later price changes don't rewrite history.</td></tr>
+</table>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>rewards/models.py</code></td><td>Reward + Redemption.</td></tr>
+<tr><td><code>rewards/services.py</code></td><td><code>redeem()</code> - atomic, locked check-and-deduct.</td></tr>
+<tr><td><code>rewards/views.py</code></td><td>reward_list, redeem_reward (POST-only), my_redemptions.</td></tr>
+<tr><td><code>rewards/admin.py</code></td><td>Manage rewards; redemptions read-only.</td></tr>
+<tr><td><code>templates/rewards/reward_list.html</code></td><td>Cards; Redeem button only when affordable.</td></tr>
+</table>
+
+<h3>Database changes</h3>
+<ul>
+    <li>New tables <code>rewards_reward</code> and <code>rewards_redemption</code>.</li>
+    <li>Redeeming decreases <code>accounts_user.eco_points_balance</code> and inserts a Redemption row.</li>
+</ul>
+
+<div class="tip"><b>Earn vs spend symmetry:</b> earning uses a <b>signal</b> (verification can happen in the admin). Spending uses a <b>service called from the view</b> (redeeming only ever happens through the user's redeem button). Right tool for each path.</div>
+
+<div class="warn"><b>Common mistake:</b> checking the balance and deducting in two separate steps without a lock. Under a double-click, both could pass the check before either deducts - the user spends points they don't have. <code>select_for_update()</code> inside a transaction closes that gap.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How do you stop a user redeeming points they don't have?</p>
+<p class="a">The redeem service runs inside a database transaction and locks the user's row with <code>select_for_update()</code>. It re-reads the balance, checks it against the cost, and only then deducts and records the redemption. The lock means two concurrent redeems can't both pass the check.</p>
+
+<p class="q">Q2. What is a database transaction and why use one here?</p>
+<p class="a">A transaction groups several database operations so they either all commit or all roll back. Deducting points and creating the redemption record must happen together - a transaction guarantees we never deduct without recording, or record without deducting.</p>
+
+<p class="q">Q3. Why is redeeming POST-only?</p>
+<p class="a">Because it changes data (spends points). GET requests should be safe and repeatable; if redeem were a normal link, a browser prefetch or refresh could spend points by accident. <code>@require_POST</code> plus a form with a CSRF token enforces this.</p>
+
+<p class="q">Q4. Why store points_spent on the Redemption instead of reading the reward's cost later?</p>
+<p class="a">It's a historical snapshot. If an admin later changes a reward's price, past redemptions should still show what was actually spent. Storing the value at redeem time keeps history accurate.</p>
+
+<p class="q">Q5. Why is the Redemption admin read-only?</p>
+<p class="a">Redemptions are financial-style records created only by the redeem flow. Letting an admin hand-create one would record a spend without actually deducting points, corrupting balances. So add is disabled and the fields are read-only.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Redeem = atomic transaction + row lock + check + deduct + record.</li>
+    <li>Earn via signal, spend via service - each matches how the action happens.</li>
+    <li>POST-only + CSRF for anything that changes data.</li>
+    <li>Tested: deduct, insufficient blocked, exact balance, inactive reward, login, POST-only (7/7).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-4 complete.</p>
 
 </body>
 </html>
