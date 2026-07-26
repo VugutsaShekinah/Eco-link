@@ -482,7 +482,93 @@ verified drop-off              click Redeem (POST)
     <li>Tested: deduct, insufficient blocked, exact balance, inactive reward, login, POST-only (7/7).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-4 complete.</p>
+<!-- =================== MILESTONE 5 =================== -->
+<h2 class="pagebreak">Milestone 5 - Administrator Dashboard <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li>A dedicated <b>staff dashboard</b> (separate from Django's /admin/) with live stats.</li>
+    <li>A <b>verification queue</b> - approve pending drop-offs with one click.</li>
+    <li>A <b>manage-users</b> page to change account status (Active / Pending / Suspended).</li>
+    <li>Everything locked behind the <code>admin_required</code> decorator.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>Completes Specific Objective 3 - admins verify drop-offs, see impact, manage users (§4.3.4).</li>
+    <li>Gives the university a single, friendly screen instead of the raw Django admin.</li>
+</ul>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Aggregation</b></td><td>Ask the database to compute totals/counts (<code>Count</code>, <code>Sum</code>) instead of looping in Python.</td></tr>
+<tr><td><b>annotate()</b></td><td>Attach a computed value to each row - e.g. each user's drop-off count.</td></tr>
+<tr><td><b>Live vs stored stats</b></td><td>We compute figures on each load, so they're always current - never a stale counter.</td></tr>
+<tr><td><b>Decorator reuse</b></td><td>One <code>admin_required</code> guard applied to every dashboard view.</td></tr>
+<tr><td><b>Template partial</b></td><td><code>_stat.html</code> included repeatedly with different values - no copy-paste.</td></tr>
+</table>
+
+<h3>How "eco-points awarded" is calculated</h3>
+<div class="flow">points_awarded = SUM(all user balances) + SUM(all points spent)
+                = points still held    + points already redeemed
+                = every point ever awarded (gross)</div>
+<p>This is exact and cheap - two simple database sums, no row-by-row looping.</p>
+
+<h3>Verify flow (from the dashboard)</h3>
+<div class="flow">Admin clicks Verify (POST + CSRF)
+        v
+verify_dropoff view  ->  dropoff.status = VERIFIED  ->  save()
+        v
+   post_save signal (Milestone 3) awards the points
+        v
+redirect back to dashboard (row disappears from the queue)</div>
+<p>Note we <b>reused the Milestone 3 signal</b> - the dashboard didn't re-implement point awarding. Same rule, one place.</p>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>dashboard/views.py</code></td><td>Stats, verify queue, manage users, set status.</td></tr>
+<tr><td><code>dashboard/urls.py</code></td><td>Routes under <code>/manage/</code>.</td></tr>
+<tr><td><code>templates/dashboard/admin_dashboard.html</code></td><td>Stat cards + pending queue.</td></tr>
+<tr><td><code>templates/dashboard/_stat.html</code></td><td>Reusable stat card partial.</td></tr>
+<tr><td><code>templates/dashboard/manage_users.html</code></td><td>User list + status form.</td></tr>
+</table>
+
+<h3>Database changes</h3>
+<ul>
+    <li><b>None</b> - the dashboard only <i>reads</i> and aggregates existing data (and verifying updates a drop-off + balance via the signal).</li>
+</ul>
+
+<div class="tip"><b>Why a custom dashboard AND the Django admin?</b> The Django admin is powerful but generic. The custom dashboard gives non-technical staff a focused screen (stats + one-click verify). We still link to the Django admin for full hub/reward CRUD - best of both.</div>
+
+<div class="warn"><b>Common mistake:</b> storing stats in counter fields and updating them by hand. They drift out of sync. Computing live with <code>Count</code>/<code>Sum</code> guarantees the numbers are always right.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How are the dashboard statistics calculated?</p>
+<p class="a">Live, using Django ORM aggregates - <code>Count</code> for totals and <code>Sum</code> for kilograms and points. Nothing is cached or stored, so every figure reflects the current database state the moment the page loads.</p>
+
+<p class="q">Q2. How do you stop non-admins seeing the dashboard?</p>
+<p class="a">Every dashboard view uses the <code>admin_required</code> decorator. It checks the logged-in user's role; anonymous users go to login and non-admins are redirected to their own dashboard - even if they type the URL directly.</p>
+
+<p class="q">Q3. When an admin verifies a drop-off here, how are points awarded?</p>
+<p class="a">The view just sets the status to Verified and saves. The Milestone 3 <code>post_save</code> signal does the awarding. The dashboard reuses that one rule rather than duplicating it, so verification behaves identically wherever it happens.</p>
+
+<p class="q">Q4. Why compute points awarded as balances plus points spent?</p>
+<p class="a">Because a user's balance is points awarded minus points spent. Adding the total spent back gives the gross total ever awarded, using two cheap database sums instead of recalculating from every drop-off.</p>
+
+<p class="q">Q5. Why is changing an administrator's status blocked?</p>
+<p class="a">To prevent an admin accidentally suspending another admin (or themselves) and locking the team out of management. The view rejects status changes on administrator accounts.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Stats are live ORM aggregates (Count/Sum) - never stored counters.</li>
+    <li>Verify reuses the Milestone 3 signal - one awarding rule everywhere.</li>
+    <li><code>admin_required</code> guards every view; admins can't be edited here.</li>
+    <li>Tested: access control, stats, verify+award, POST-only, status change (8/8).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-5 complete.</p>
 
 </body>
 </html>
