@@ -702,7 +702,79 @@ Carol 100 pts   -> 3 people ahead -> rank 4</div>
     <li>Tests caught a missing import before it ever reached a browser.</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-7 complete.</p>
+<!-- =================== MILESTONE 8 =================== -->
+<h2 class="pagebreak">Milestone 8 - Testing &amp; Coverage <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li>A full <b>end-to-end integration test</b> - the whole journey in one test.</li>
+    <li>Extra unit tests (user manager, seed commands).</li>
+    <li>A <b>coverage report</b>: 54 tests, <b>97%</b> coverage (report §4.5 claimed &gt;85%).</li>
+</ul>
+
+<h3>Unit vs Integration testing</h3>
+<table>
+<tr><th>Type</th><th>Checks</th><th>Example in ECO-LINK</th></tr>
+<tr><td><b>Unit test</b></td><td>One small piece in isolation.</td><td>"10 points per kg" formula; "insufficient points blocks redeem".</td></tr>
+<tr><td><b>Integration test</b></td><td>Many pieces working together as a workflow.</td><td>register -&gt; log -&gt; verify -&gt; redeem -&gt; leaderboard, checking the DB at each step.</td></tr>
+</table>
+
+<h3>The integration journey (one test)</h3>
+<div class="flow">register (auto-login)      -> user row created
+log 5kg drop-off          -> DropOff Pending, balance 0
+admin verifies (2nd session) -> Verified, balance 50 (signal)
+dashboard + leaderboard   -> rank #1, 5.00 kg impact
+redeem 30-pt reward       -> balance 20, Redemption recorded
+history pages             -> show hub + reward names</div>
+
+<h3>Concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Test Client</b></td><td>A fake browser that makes requests to the app in tests.</td></tr>
+<tr><td><b>Two sessions</b></td><td>We use one client for the student and a second for the admin - just like real life.</td></tr>
+<tr><td><b>coverage.py</b></td><td>Measures which lines the tests actually run - our score is 97%.</td></tr>
+<tr><td><b>call_command()</b></td><td>Runs a management command (seed_hubs) from inside a test.</td></tr>
+<tr><td><b>Idempotent seed</b></td><td>Re-running the seed doesn't create duplicates - and we test that.</td></tr>
+</table>
+
+<h3>Coverage snapshot (per app, models &amp; views)</h3>
+<div class="flow">accounts   forms 100%  views 94%  models (manager tested)
+dropoffs   models 100% views 95%  signals 100% points 100%
+rewards    services 100% views 96% models 100%
+dashboard  views 96%
+leaderboard views 100% ranking 100%
+------------------------------------------------
+TOTAL      54 tests    97% coverage</div>
+
+<h3>How to run it yourself</h3>
+<div class="flow">manage.py test                       # run all 54 tests
+coverage run manage.py test          # run under coverage
+coverage report                      # see the per-file table
+coverage html                        # optional: browsable HTML report</div>
+
+<div class="tip"><b>Why integration testing matters:</b> unit tests prove each part works alone; the integration test proves they work <i>together</i> - that verifying a drop-off really does move points that the leaderboard then really does rank. That end-to-end proof is exactly what a viva panel wants to see.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. What's the difference between your unit and integration tests?</p>
+<p class="a">Unit tests check one piece in isolation - for example the points formula or the redeem rule. The integration test runs the whole workflow end to end: registering, logging a drop-off, an admin verifying it, points being awarded, the leaderboard updating, and redeeming a reward - checking the database at each step.</p>
+
+<p class="q">Q2. What is test coverage and what did you achieve?</p>
+<p class="a">Coverage measures the percentage of code lines the tests actually execute. Using coverage.py, ECO-LINK reaches 97% across the apps, comfortably above the 85% target, with the core models, views, signal, and services fully covered.</p>
+
+<p class="q">Q3. How did you test the admin-verifies-user-earns flow across two people?</p>
+<p class="a">The integration test uses two separate test clients - one authenticated as the student, one as the admin - so a drop-off logged in the student's session is verified in the admin's session, and we then confirm the student's balance and leaderboard rank updated.</p>
+
+<p class="q">Q4. Did testing ever catch a real bug?</p>
+<p class="a">Yes - when I added the landing page, the view used the User model without importing it. The test suite failed immediately with a NameError, so I fixed it before it ever reached a browser.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>54 tests, 97% coverage; unit + one full integration journey.</li>
+    <li>Two test clients model the student and admin separately.</li>
+    <li>Seeds are idempotent and tested; run with <code>coverage run manage.py test</code>.</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-8 complete.</p>
 
 </body>
 </html>
