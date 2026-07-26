@@ -648,7 +648,61 @@ Carol 100 pts   -> 3 people ahead -> rank 4</div>
     <li>Tested: order, rank, ties, admin-excluded, verified-only impact (6/6).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-6 complete.</p>
+<!-- =================== MILESTONE 7 =================== -->
+<h2 class="pagebreak">Milestone 7 - Styling &amp; Landing Page <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li>A public <b>landing page</b>: hero, feature grid, how-it-works steps, live impact numbers.</li>
+    <li>A cohesive <b>green theme</b> (CSS variables) applied across every page.</li>
+    <li>Polish: emoji favicon, active-nav highlighting, sticky footer, card hover.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>Sprint 4 in the report was visual polish with Bootstrap 5 (§4.2.4).</li>
+    <li>A strong first impression makes the demo and viva far more convincing.</li>
+</ul>
+
+<h3>Django / front-end concepts</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>CSS variables</b></td><td><code>--eco-green</code> defined once, reused everywhere - change the brand in one spot.</td></tr>
+<tr><td><b>Public vs private view</b></td><td><code>home</code> shows a landing page to visitors, redirects logged-in users to their dashboard.</td></tr>
+<tr><td><b>resolver_match.url_name</b></td><td>Lets the navbar highlight the page you're currently on.</td></tr>
+<tr><td><b>Data-URI favicon</b></td><td>An emoji SVG embedded in the HTML - a tab icon with no image file.</td></tr>
+<tr><td><b>Sticky footer</b></td><td>Flexbox on <code>body</code> keeps the footer at the bottom even on short pages.</td></tr>
+</table>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>static/css/ecolink.css</code></td><td>Theme variables, hero, feature icons, buttons, cards.</td></tr>
+<tr><td><code>templates/accounts/home.html</code></td><td>The landing page.</td></tr>
+<tr><td><code>accounts/views.py</code> (home)</td><td>Serves landing + live impact numbers to visitors.</td></tr>
+<tr><td><code>templates/base.html</code></td><td>Favicon, active links, sticky footer.</td></tr>
+</table>
+
+<div class="tip"><b>Debugging lesson from this milestone:</b> the landing view used <code>User</code> without importing it. The test suite caught the <code>NameError</code> immediately - a great example of why we write tests as we go rather than finding it live during the demo.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How does the home page decide what to show?</p>
+<p class="a">If the visitor is logged in, it redirects to their dashboard. Otherwise it renders a public landing page with live impact numbers pulled from verified drop-offs, so even the marketing page shows real data.</p>
+
+<p class="q">Q2. How is the green theme kept consistent?</p>
+<p class="a">Brand colours are defined once as CSS custom properties (variables) in one stylesheet and reused across buttons, the hero, and cards. Changing the brand colour is a one-line edit.</p>
+
+<p class="q">Q3. Is the interface responsive?</p>
+<p class="a">Yes - it's built on Bootstrap 5's responsive grid, so the hero, feature cards, and tables reflow for mobile, tablet, and desktop. Tables scroll horizontally inside their container on small screens.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>One stylesheet, CSS variables - consistent brand, easy to change.</li>
+    <li>Landing page shows live impact numbers, not placeholders.</li>
+    <li>Tests caught a missing import before it ever reached a browser.</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-7 complete.</p>
 
 </body>
 </html>
