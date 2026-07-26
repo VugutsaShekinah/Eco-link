@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Rewards &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h3 class="mb-0" style="color:#14532d;">Rewards catalogue</h3>
+  <div class="text-end">
+    <div class="text-muted small text-uppercase">Your balance</div>
+    <div class="fs-4 fw-bold text-success">{{ balance }} pts</div>
+  </div>
+</div>
+
+<div class="row g-3">
+  {% for reward in rewards %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 border-0 shadow-sm">
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title mb-1">{{ reward.name }}</h5>
+          <p class="card-text text-muted small flex-grow-1">{{ reward.description }}</p>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <span class="badge bg-success-subtle text-success fs-6">{{ reward.points_required }} pts</span>
+            {% if balance >= reward.points_required %}
+              <form method="post" action="{% url 'redeem_reward' reward.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm">Redeem</button>
+              </form>
+            {% else %}
+              <button class="btn btn-outline-secondary btn-sm" disabled>
+                Not enough points
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">No rewards are available right now. Check back soon!</div>
+    </div>
+  {% endfor %}
+</div>
+
+{% if rewards %}
+  <div class="text-end mt-3">
+    <a href="{% url 'my_redemptions' %}" class="small">View my redemptions →</a>
+  </div>
+{% endif %}
+{% endblock %}

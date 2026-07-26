@@ -14,4 +14,6 @@ urlpatterns = [
     path("", include("accounts.urls")),
     # Drop-off logging and history
     path("dropoffs/", include("dropoffs.urls")),
+    # Rewards catalogue and redemption
+    path("rewards/", include("rewards.urls")),
 ]

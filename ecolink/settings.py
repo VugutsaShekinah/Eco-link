@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "accounts",
     "hubs",
     "dropoffs",
+    "rewards",
 ]
 
 MIDDLEWARE = [

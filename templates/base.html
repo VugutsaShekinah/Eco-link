@@ -24,6 +24,7 @@
                     <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'log_dropoff' %}">Log Drop-off</a></li>
                     <li class="nav-item"><a class="nav-link" href="{% url 'my_dropoffs' %}">My Drop-offs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'reward_list' %}">Rewards</a></li>
                     {% if user.is_administrator %}
                         <li class="nav-item"><span class="badge bg-warning text-dark ms-lg-2">Admin</span></li>
                     {% endif %}
