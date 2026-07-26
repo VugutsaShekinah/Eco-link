@@ -293,7 +293,115 @@ manage.py seed_hubs             # load demo hubs + manufacturer</div>
     <li>Tested: str output, defaults, is_accepting, capacity validation, SET_NULL (7/7 pass).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-2 complete.</p>
+<!-- =================== MILESTONE 3 =================== -->
+<h2 class="pagebreak">Milestone 3 - Drop-offs &amp; Eco-points <span class="tag">DONE</span></h2>
+
+<div class="tip"><b>This is the heart of ECO-LINK</b> and your Specific Objective 2. Expect the most viva questions here.</div>
+
+<h3>What we built</h3>
+<ul>
+    <li><b>DropOff</b> model - one plastic deposit: user, hub, plastic type, weight, status, timestamps.</li>
+    <li><b>One shared points formula</b> (10 points/kg) used by the model, the view, and the JS preview.</li>
+    <li><b>Live JavaScript preview</b> - shows points as you type the weight, before submitting.</li>
+    <li><b>Verification signal</b> - awards points automatically the moment an admin verifies a drop-off.</li>
+    <li>Dashboard + history pages showing real balance and drop-offs.</li>
+</ul>
+
+<h3>The golden rule: points only on verification</h3>
+<div class="flow">Log drop-off  ->  status = PENDING   (0 points yet)
+                        |
+             admin verifies it
+                        v
+              status = VERIFIED
+                        |
+          post_save signal fires
+                        v
+   user.eco_points_balance += weight x 10
+   verified_at = now   (audit trail)</div>
+<p>Pending drop-offs never count toward the balance or leaderboard. This is the report's <b>"Accountable"</b> RAPID principle - every point has a verified record behind it.</p>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Signal</b></td><td>Code that runs automatically <i>after</i> an event (here: after a DropOff is saved).</td></tr>
+<tr><td><b>post_save</b></td><td>The specific signal fired after any model save.</td></tr>
+<tr><td><b>AppConfig.ready()</b></td><td>The startup hook where we connect the signal so Django knows about it.</td></tr>
+<tr><td><b>Idempotent</b></td><td>Safe to run more than once with the same result - our <code>verified_at</code> guard stops double-awarding.</td></tr>
+<tr><td><b>ModelForm</b></td><td>A form built straight from a model; validation comes from the model's fields.</td></tr>
+<tr><td><b>Form queryset</b></td><td>We filter the hub dropdown to only ACTIVE hubs.</td></tr>
+<tr><td><b>on_delete=PROTECT</b></td><td>Refuse to delete a hub that still has drop-offs (protects history).</td></tr>
+<tr><td><b>select_related</b></td><td>Fetch the hub in the same query as the drop-off - avoids extra DB hits.</td></tr>
+</table>
+
+<h3>Request flow - logging a drop-off</h3>
+<div class="flow">Browser (weight typed)
+   |  JS: weight x 10 -> live preview updates instantly
+   v
+Submit POST + CSRF
+   v
+URL /dropoffs/log/  ->  log_dropoff view
+   v
+DropOffForm.is_valid()  --- invalid --->  re-render with errors
+   |  valid
+   v
+form.save(commit=False); dropoff.user = request.user; save()
+   v
+status = PENDING  ->  row in dropoffs_dropoff
+   v
+redirect to dashboard (shows it as Pending)</div>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>dropoffs/points.py</code></td><td>The ONE eco-points formula (10/kg). Single source of truth.</td></tr>
+<tr><td><code>dropoffs/models.py</code></td><td>DropOff model + <code>calculate_points()</code>.</td></tr>
+<tr><td><code>dropoffs/signals.py</code></td><td>Awards points on verification (idempotent).</td></tr>
+<tr><td><code>dropoffs/apps.py</code></td><td><code>ready()</code> connects the signal.</td></tr>
+<tr><td><code>dropoffs/forms.py</code></td><td>DropOffForm - active hubs only.</td></tr>
+<tr><td><code>dropoffs/views.py</code></td><td><code>log_dropoff</code>, <code>my_dropoffs</code>.</td></tr>
+<tr><td><code>dropoffs/admin.py</code></td><td>Admin "Verify" action (loops save() so the signal runs).</td></tr>
+<tr><td><code>templates/dropoffs/log_dropoff.html</code></td><td>Form + live JS preview.</td></tr>
+</table>
+
+<h3>Database changes</h3>
+<ul>
+    <li>New table <code>dropoffs_dropoff</code> (FK to user + hub, weight, type, status, timestamps).</li>
+    <li>Index on <code>(user, status)</code> so dashboard/history queries stay fast.</li>
+    <li>Verifying updates <code>accounts_user.eco_points_balance</code> (via the signal).</li>
+</ul>
+
+<div class="warn"><b>Common mistake 1:</b> awarding points in the view. If you did that, the admin verifying in the Django admin would bypass it. Putting it in a <b>signal</b> means it fires no matter <i>how</i> the record is verified.</div>
+<div class="warn"><b>Common mistake 2:</b> bulk <code>queryset.update()</code> to verify. That skips signals, so no points would be awarded. Our admin action loops <code>save()</code> on each record instead.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How are eco-points calculated and why one formula in one file?</p>
+<p class="a">10 points per kilogram, defined once in <code>points.py</code>. The model, the view message, and the JavaScript preview all use that same rate, so the number a user previews always matches what they're eventually credited. This is the RAPID "Responsible" principle - one rule, applied consistently.</p>
+
+<p class="q">Q2. What is a Django signal and why did you use one here?</p>
+<p class="a">A signal runs code automatically after an event - here, <code>post_save</code> on DropOff. When a drop-off becomes Verified, the signal adds the points to the user's balance. Using a signal means verification works identically whether it happens through the admin or anywhere else in code.</p>
+
+<p class="q">Q3. How do you prevent awarding points twice?</p>
+<p class="a">The signal only awards when the status is Verified AND <code>verified_at</code> is still empty. After awarding, it stamps <code>verified_at</code>, so any later save is ignored. That makes it idempotent.</p>
+
+<p class="q">Q4. Why don't pending drop-offs count?</p>
+<p class="a">To keep the system trustworthy and accountable. An administrator checks the physical weight at the hub before verifying, so points always correspond to a real, confirmed deposit - the audit trail behind every eco-point.</p>
+
+<p class="q">Q5. How does the live points preview stay accurate?</p>
+<p class="a">The template passes the same rate the server uses into a small JavaScript function that multiplies weight by that rate as the user types. Because both sides use one rate, the preview can't disagree with the final award.</p>
+
+<p class="q">Q6. Why PROTECT on the hub foreign key but CASCADE on the user?</p>
+<p class="a">Deleting a user removes their own drop-offs (CASCADE). But a hub with recorded drop-offs is part of the history, so PROTECT stops it being deleted and silently wiping verified contributions.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Rate = 10 points/kg, one place (<code>points.py</code>).</li>
+    <li>PENDING -> VERIFIED is the only path that awards points (via the signal).</li>
+    <li>Signal is idempotent (the <code>verified_at</code> guard) - no double points.</li>
+    <li>Admin verify action must loop save(), never bulk update().</li>
+    <li>Tested hard: formula, award-once, accumulation, weight validation, view + closed-hub guard (9/9).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-3 complete.</p>
 
 </body>
 </html>
