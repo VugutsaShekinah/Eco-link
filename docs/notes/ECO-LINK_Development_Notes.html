@@ -568,7 +568,87 @@ redirect back to dashboard (row disappears from the queue)</div>
     <li>Tested: access control, stats, verify+award, POST-only, status change (8/8).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-5 complete.</p>
+<!-- =================== MILESTONE 6 =================== -->
+<h2 class="pagebreak">Milestone 6 - Community Leaderboard &amp; Impact <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li>A <b>ranked leaderboard</b> of participants by eco-points (highest first).</li>
+    <li><b>Your own row highlighted</b> with a "You" badge; medals for the top 3.</li>
+    <li><b>Impact figures</b>: kg collected, approximate items diverted, verified drop-offs.</li>
+    <li>Your rank also shown on your dashboard.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>Gamification - the report's literature review found leaderboards drive participation (§4.3.5).</li>
+    <li>Impact figures give the university visible proof the programme works.</li>
+</ul>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>order_by('-field')</b></td><td>Sort rows; the minus means descending (highest points first).</td></tr>
+<tr><td><b>exclude()</b></td><td>Leave rows out of a query - here, admins are excluded from rankings.</td></tr>
+<tr><td><b>Competition rank</b></td><td>Rank = (people with MORE points) + 1, so tied users share a rank.</td></tr>
+<tr><td><b>forloop.counter</b></td><td>Template counter giving each row its 1, 2, 3... position.</td></tr>
+<tr><td><b>Row highlight</b></td><td>Compare <code>member.pk == user.pk</code> in the template to style the viewer's row.</td></tr>
+<tr><td><b>Shared helper</b></td><td><code>participant_rank()</code> lives once, used by dashboard AND leaderboard.</td></tr>
+</table>
+
+<h3>How rank works (ties included)</h3>
+<div class="flow">Bob   500 pts   -> 0 people ahead -> rank 1
+Dave  500 pts   -> 0 people ahead -> rank 1   (tie!)
+Alice 300 pts   -> 2 people ahead -> rank 3
+Carol 100 pts   -> 3 people ahead -> rank 4</div>
+<p>rank = count(balance &gt; mine) + 1. Simple, and ties naturally share a number.</p>
+
+<h3>Impact estimate</h3>
+<div class="flow">items diverted = kg collected / 0.02 kg-per-item  (~20g average)</div>
+<p>The report calls this an <i>approximate</i> figure - it turns an abstract weight into something relatable ("~200 bottles"). Only <b>verified</b> drop-offs count.</p>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>leaderboard/views.py</code></td><td>Rankings + impact + viewer's rank.</td></tr>
+<tr><td><code>leaderboard/ranking.py</code></td><td><code>participant_rank()</code> - one definition, reused.</td></tr>
+<tr><td><code>templates/leaderboard/leaderboard.html</code></td><td>Impact cards + ranked table + highlight.</td></tr>
+</table>
+
+<h3>Database changes</h3>
+<ul>
+    <li><b>None</b> - the leaderboard only reads and sorts existing data.</li>
+</ul>
+
+<div class="tip"><b>Ranking uses the balance field:</b> because eco-points only increase on verification (Milestone 3), the leaderboard automatically reflects confirmed contributions - no separate "verified points" tally needed.</div>
+
+<div class="warn"><b>Common mistake:</b> duplicating the rank formula in two views and having them drift. We put it in one helper so the dashboard and the leaderboard always agree.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. How is the leaderboard ordered and kept up to date?</p>
+<p class="a">It's a single query ordering participants by their eco-points balance descending, run fresh on every page load. Because points only change on verification, the ranking always reflects confirmed contributions with no cached state to go stale.</p>
+
+<p class="q">Q2. How do you highlight the current user's row?</p>
+<p class="a">In the template I compare each row's user to the logged-in user; when they match I add a highlight class and a "You" badge, so a user can find themselves instantly.</p>
+
+<p class="q">Q3. How is a user's rank calculated, and how are ties handled?</p>
+<p class="a">Rank equals the number of participants with strictly more points, plus one. Two users on the same points therefore share the same rank - standard competition ranking.</p>
+
+<p class="q">Q4. What does "items diverted" mean and is it exact?</p>
+<p class="a">It's an approximation: kilograms collected divided by an average item weight of about 20 grams. It's deliberately labelled approximate - its purpose is to make the impact relatable, not to be a precise count.</p>
+
+<p class="q">Q5. Why are administrators excluded from the leaderboard?</p>
+<p class="a">Admins are staff who verify drop-offs, not participants competing for points, so including them would be misleading. The query excludes the Administrator role.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Ranked by eco-points balance, descending, live each load; admins excluded.</li>
+    <li>rank = count(points &gt; mine) + 1 (ties share); one helper, reused.</li>
+    <li>Impact = verified kg, approx items (kg / 0.02), verified count.</li>
+    <li>Tested: order, rank, ties, admin-excluded, verified-only impact (6/6).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-6 complete.</p>
 
 </body>
 </html>
