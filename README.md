@@ -1,4 +1,4 @@
-# ECO-LINK — Plastic Waste Management System
+# 🌿 ECO-LINK — Plastic Waste Management System
 
 A web-based platform that connects students, staff, and the community around
 **Riara University** with recycling collection hubs and certified recyclers
@@ -8,8 +8,9 @@ rewards, and climb a community leaderboard.
 > Final Year Project — BSc Business Information Technology, Riara University.
 > Built with Python, Django 5, and PostgreSQL.
 
---
-##  Features
+---
+
+## ✨ Features
 
 | Module | What it does |
 |--------|--------------|
@@ -30,7 +31,7 @@ rewards, and climb a community leaderboard.
 
 ---
 
-## Getting started (from a fresh clone)
+## 🚀 Getting started (from a fresh clone)
 
 ### Prerequisites
 - Python 3.11+ (developed on 3.14)
@@ -85,7 +86,7 @@ Open **http://127.0.0.1:8000/**.
 
 ---
 
-## Testing
+## 🧪 Testing
 
 ```bash
 python manage.py test                    # run all tests (54)
@@ -96,7 +97,7 @@ python -m coverage html                  # browsable report in htmlcov/
 
 ---
 
-##  URL map
+## 🗺 URL map
 
 | Path | Page | Access |
 |------|------|--------|
@@ -112,7 +113,7 @@ python -m coverage html                  # browsable report in htmlcov/
 
 ---
 
-## Project structure
+## 📁 Project structure
 
 ```
 ecolink/        Project config (settings, root URLs)
@@ -129,7 +130,7 @@ docs/           Development notes (HTML source + PDF build)
 
 ---
 
-## Key design decisions
+## 🔒 Key design decisions
 
 - **Custom User model** keyed on **email** (no username).
 - **One eco-points formula** (`dropoffs/points.py`) reused by the model, view, and JS preview.
@@ -139,7 +140,7 @@ docs/           Development notes (HTML source + PDF build)
 
 ---
 
-## Deployment
+## 🌐 Deployment
 
 See **[DEPLOYMENT.md](DEPLOYMENT.md)** for production notes (Gunicorn + Nginx on
 Ubuntu, `collectstatic`, HTTPS, and environment configuration).

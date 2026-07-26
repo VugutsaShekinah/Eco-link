@@ -135,6 +135,22 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+# Where `collectstatic` gathers files for production serving (Nginx).
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+# Production security hardening — only applied when DEBUG is off, so local
+# development over http still works (report §3.2.2.5: HTTPS, secure cookies).
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True            # force HTTPS
+    SESSION_COOKIE_SECURE = True          # cookies only over HTTPS
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000        # tell browsers to stay on HTTPS
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    # Trust the proxy's X-Forwarded-Proto header (Nginx/Gunicorn deployment).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
