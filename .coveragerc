@@ -1,0 +1,21 @@
+# Coverage configuration for ECO-LINK.
+# Measures our application code, not the framework, migrations, or test files.
+
+[run]
+source = accounts, hubs, dropoffs, rewards, dashboard, leaderboard
+omit =
+    */migrations/*
+    */tests.py
+    */test_*.py
+    */__init__.py
+    */apps.py
+    manage.py
+
+[report]
+# Show lines that aren't covered, and don't count defensive-only lines.
+show_missing = True
+skip_covered = False
+exclude_lines =
+    pragma: no cover
+    def __str__
+    raise NotImplementedError

@@ -69,6 +69,31 @@ class RegistrationTests(TestCase):
         self.assertFalse(User.objects.filter(email="sneaky@example.com").exists())
 
 
+class UserManagerTests(TestCase):
+    def test_create_user_requires_email(self):
+        with self.assertRaises(ValueError):
+            User.objects.create_user(email="", password="x")
+
+    def test_create_user_hashes_password(self):
+        u = User.objects.create_user(email="a@example.com", password="secret123")
+        self.assertNotEqual(u.password, "secret123")
+        self.assertTrue(u.check_password("secret123"))
+
+    def test_create_superuser_is_admin(self):
+        su = User.objects.create_superuser(email="su@example.com", password="x")
+        self.assertTrue(su.is_staff)
+        self.assertTrue(su.is_superuser)
+        self.assertEqual(su.role, User.Role.ADMIN)
+        self.assertEqual(su.status, User.Status.ACTIVE)
+        self.assertTrue(su.is_administrator)
+
+    def test_superuser_must_have_staff_and_superuser_flags(self):
+        with self.assertRaises(ValueError):
+            User.objects.create_superuser(email="x@example.com", password="x", is_staff=False)
+        with self.assertRaises(ValueError):
+            User.objects.create_superuser(email="y@example.com", password="x", is_superuser=False)
+
+
 class HomePageTests(TestCase):
     def test_anonymous_sees_landing_page(self):
         response = self.client.get(reverse("home"))

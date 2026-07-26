@@ -35,7 +35,9 @@
                     {% endif %}
                     {% endwith %}
                     <li class="nav-item ms-lg-3">
-                        <span class="navbar-text text-white-50 small">{{ user.email }}</span>
+                        <span class="navbar-text text-white small">
+                            Hi, {{ user.get_full_name|default:user.first_name|default:user.email }}
+                        </span>
                     </li>
                     <li class="nav-item ms-lg-2">
                         <form action="{% url 'logout' %}" method="post" class="d-inline">

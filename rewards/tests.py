@@ -4,12 +4,21 @@ rewards/tests.py — redemption rules.
 Run with:  ./venv/Scripts/python.exe manage.py test rewards
 """
 
+from io import StringIO
+
+from django.core.management import call_command
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
 
 from .models import Redemption, Reward
+
+
+class SeedRewardsCommandTests(TestCase):
+    def test_seed_creates_rewards(self):
+        call_command("seed_rewards", stdout=StringIO())
+        self.assertTrue(Reward.objects.exists())
 from .services import (
     InsufficientPointsError,
     RewardUnavailableError,

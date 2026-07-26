@@ -5,11 +5,26 @@ Run with:  ./venv/Scripts/python.exe manage.py test hubs
 """
 
 from decimal import Decimal
+from io import StringIO
 
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
 from django.test import TestCase
 
 from .models import Hub, Manufacturer
+
+
+class SeedHubsCommandTests(TestCase):
+    def test_seed_creates_hub_and_manufacturer(self):
+        call_command("seed_hubs", stdout=StringIO())
+        self.assertTrue(Hub.objects.exists())
+        self.assertTrue(Manufacturer.objects.exists())
+
+    def test_seed_is_idempotent(self):
+        call_command("seed_hubs", stdout=StringIO())
+        count = Hub.objects.count()
+        call_command("seed_hubs", stdout=StringIO())  # running again must not duplicate
+        self.assertEqual(Hub.objects.count(), count)
 
 
 class ManufacturerModelTests(TestCase):

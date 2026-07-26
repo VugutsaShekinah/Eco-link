@@ -26,26 +26,17 @@ class Command(BaseCommand):
             },
         )
 
-        sample_hubs = [
-            ("Main Cafeteria Hub", "Main Cafeteria entrance", "120.00"),
-            ("Library Hub", "Library ground floor", "80.00"),
-            ("Hostels Hub", "Student hostels courtyard", "100.00"),
-            ("Main Gate Hub", "Near the main gate", "60.00"),
-        ]
-
-        created = 0
-        for name, location, capacity in sample_hubs:
-            _, was_created = Hub.objects.get_or_create(
-                name=name,
-                defaults={
-                    "location": location,
-                    "capacity_kg": Decimal(capacity),
-                    "manufacturer": mfr,
-                },
-            )
-            created += int(was_created)
+        # ECO-LINK operates a single collection hub at the Main Gate.
+        _, was_created = Hub.objects.get_or_create(
+            name="Main Gate Hub",
+            defaults={
+                "location": "Near the main gate",
+                "capacity_kg": Decimal("120.00"),
+                "manufacturer": mfr,
+            },
+        )
 
         self.stdout.write(self.style.SUCCESS(
-            f"Seed complete: {Hub.objects.count()} hubs "
-            f"({created} new), 1 manufacturer."
+            f"Seed complete: {Hub.objects.count()} hub(s) "
+            f"({int(was_created)} new), 1 manufacturer."
         ))
