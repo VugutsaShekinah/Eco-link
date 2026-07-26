@@ -87,6 +87,16 @@ class UserManagerTests(TestCase):
         self.assertEqual(su.status, User.Status.ACTIVE)
         self.assertTrue(su.is_administrator)
 
+    def test_display_name_prefers_full_name_then_email_localpart(self):
+        named = User.objects.create_user(
+            email="amina@example.com", password="x",
+            first_name="Amina", last_name="Otieno",
+        )
+        self.assertEqual(named.display_name, "Amina Otieno")
+
+        nameless = User.objects.create_user(email="justme@example.com", password="x")
+        self.assertEqual(nameless.display_name, "justme")  # email local-part, not full email
+
     def test_superuser_must_have_staff_and_superuser_flags(self):
         with self.assertRaises(ValueError):
             User.objects.create_superuser(email="x@example.com", password="x", is_staff=False)

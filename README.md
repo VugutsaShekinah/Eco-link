@@ -150,3 +150,4 @@ Ubuntu, `collectstatic`, HTTPS, and environment configuration).
 ## 📄 License / attribution
 
 Academic project by Shekinah Vugutsa Onzere, Riara University, 2026.
+

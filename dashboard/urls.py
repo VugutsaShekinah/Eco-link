@@ -7,6 +7,7 @@ from . import views
 urlpatterns = [
     path("", views.admin_dashboard, name="admin_dashboard"),
     path("dropoffs/<int:pk>/verify/", views.verify_dropoff, name="verify_dropoff"),
+    path("dropoffs/export.csv", views.export_dropoffs_csv, name="export_dropoffs_csv"),
     path("users/", views.manage_users, name="manage_users"),
     path("users/<int:pk>/status/", views.set_user_status, name="set_user_status"),
 ]

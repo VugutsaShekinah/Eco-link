@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 640" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1000" height="640" fill="#ffffff"/>
+<text x="500.0" y="30" text-anchor="middle" fill="#14532d" font-size="18" font-weight="800">ECO-LINK Entity Relationship Diagram</text>
+<rect x="40" y="70" width="220" height="170" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="40" y="70" width="220" height="28" rx="6" fill="#16a34a"/>
+<rect x="40" y="84" width="220" height="14" fill="#16a34a"/>
+<text x="150.0" y="89" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">User</text>
+<text x="52" y="114" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="52" y="134" fill="#1f2937" font-size="12.5">email  (unique)</text>
+<text x="52" y="154" fill="#1f2937" font-size="12.5">role</text>
+<text x="52" y="174" fill="#1f2937" font-size="12.5">status</text>
+<text x="52" y="194" fill="#1f2937" font-size="12.5">eco_points_balance</text>
+<text x="52" y="214" fill="#1f2937" font-size="12.5">first_name</text>
+<text x="52" y="234" fill="#1f2937" font-size="12.5">last_name</text>
+<rect x="400" y="70" width="220" height="190" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="400" y="70" width="220" height="28" rx="6" fill="#16a34a"/>
+<rect x="400" y="84" width="220" height="14" fill="#16a34a"/>
+<text x="510.0" y="89" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">DropOff</text>
+<text x="412" y="114" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="412" y="134" fill="#1f2937" font-size="12.5">user  (FK)</text>
+<text x="412" y="154" fill="#1f2937" font-size="12.5">hub  (FK)</text>
+<text x="412" y="174" fill="#1f2937" font-size="12.5">plastic_type</text>
+<text x="412" y="194" fill="#1f2937" font-size="12.5">weight_kg</text>
+<text x="412" y="214" fill="#1f2937" font-size="12.5">status</text>
+<text x="412" y="234" fill="#1f2937" font-size="12.5">created_at</text>
+<text x="412" y="254" fill="#1f2937" font-size="12.5">verified_at</text>
+<rect x="760" y="70" width="200" height="150" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="760" y="70" width="200" height="28" rx="6" fill="#16a34a"/>
+<rect x="760" y="84" width="200" height="14" fill="#16a34a"/>
+<text x="860.0" y="89" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Hub</text>
+<text x="772" y="114" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="772" y="134" fill="#1f2937" font-size="12.5">name</text>
+<text x="772" y="154" fill="#1f2937" font-size="12.5">location</text>
+<text x="772" y="174" fill="#1f2937" font-size="12.5">capacity_kg</text>
+<text x="772" y="194" fill="#1f2937" font-size="12.5">status</text>
+<text x="772" y="214" fill="#1f2937" font-size="12.5">manufacturer  (FK)</text>
+<rect x="760" y="300" width="200" height="150" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="760" y="300" width="200" height="28" rx="6" fill="#16a34a"/>
+<rect x="760" y="314" width="200" height="14" fill="#16a34a"/>
+<text x="860.0" y="319" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Manufacturer</text>
+<text x="772" y="344" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="772" y="364" fill="#1f2937" font-size="12.5">name</text>
+<text x="772" y="384" fill="#1f2937" font-size="12.5">email</text>
+<text x="772" y="404" fill="#1f2937" font-size="12.5">phone_number</text>
+<text x="772" y="424" fill="#1f2937" font-size="12.5">location</text>
+<text x="772" y="444" fill="#1f2937" font-size="12.5">is_certified</text>
+<rect x="400" y="360" width="220" height="130" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="400" y="360" width="220" height="28" rx="6" fill="#16a34a"/>
+<rect x="400" y="374" width="220" height="14" fill="#16a34a"/>
+<text x="510.0" y="379" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Redemption</text>
+<text x="412" y="404" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="412" y="424" fill="#1f2937" font-size="12.5">user  (FK)</text>
+<text x="412" y="444" fill="#1f2937" font-size="12.5">reward  (FK)</text>
+<text x="412" y="464" fill="#1f2937" font-size="12.5">points_spent</text>
+<text x="412" y="484" fill="#1f2937" font-size="12.5">created_at</text>
+<rect x="760" y="500" width="200" height="110" rx="6" fill="#ffffff" stroke="#14532d" stroke-width="1.5"/>
+<rect x="760" y="500" width="200" height="28" rx="6" fill="#16a34a"/>
+<rect x="760" y="514" width="200" height="14" fill="#16a34a"/>
+<text x="860.0" y="519" text-anchor="middle" fill="#fff" font-weight="700" font-size="14">Reward</text>
+<text x="772" y="544" fill="#1f2937" font-size="12.5">id  (PK)</text>
+<text x="772" y="564" fill="#1f2937" font-size="12.5">name</text>
+<text x="772" y="584" fill="#1f2937" font-size="12.5">points_required</text>
+<text x="772" y="604" fill="#1f2937" font-size="12.5">is_active</text>
+<line x1="260" y1="150" x2="400" y2="150" stroke="#14532d" stroke-width="1.6"/>
+<text x="268" y="144" fill="#14532d" font-size="13" font-weight="700">1</text>
+<text x="384" y="144" fill="#14532d" font-size="13" font-weight="700">*</text>
+<line x1="760" y1="150" x2="620" y2="150" stroke="#14532d" stroke-width="1.6"/>
+<text x="742" y="144" fill="#14532d" font-size="13" font-weight="700">1</text>
+<text x="628" y="144" fill="#14532d" font-size="13" font-weight="700">*</text>
+<line x1="860" y1="300" x2="860" y2="210" stroke="#14532d" stroke-width="1.6"/>
+<text x="866" y="300" fill="#14532d" font-size="13" font-weight="700">1</text>
+<text x="866" y="222" fill="#14532d" font-size="13" font-weight="700">*</text>
+<polyline points="150,210 150,420 400,420" fill="none" stroke="#14532d" stroke-width="1.6"/>
+<text x="156" y="230" fill="#14532d" font-size="13" font-weight="700">1</text>
+<text x="384" y="414" fill="#14532d" font-size="13" font-weight="700">*</text>
+<polyline points="760,540 690,540 690,420 620,420" fill="none" stroke="#14532d" stroke-width="1.6"/>
+<text x="742" y="534" fill="#14532d" font-size="13" font-weight="700">1</text>
+<text x="628" y="414" fill="#14532d" font-size="13" font-weight="700">*</text>
+</svg>

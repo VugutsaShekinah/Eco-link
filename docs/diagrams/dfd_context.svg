@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 380" font-family="Segoe UI, Arial, sans-serif">
+<rect width="1000" height="380" fill="#ffffff"/>
+<text x="500.0" y="30" text-anchor="middle" fill="#14532d" font-size="18" font-weight="800">ECO-LINK Data Flow Diagram (Level 0 — Context)</text>
+<circle cx="500" cy="270" r="90" fill="#16a34a" stroke="#14532d" stroke-width="2"/><text x="500" y="265" text-anchor="middle" fill="#fff" font-size="15" font-weight="700">ECO-LINK</text><text x="500" y="285" text-anchor="middle" fill="#fff" font-size="12">System</text>
+<rect x="60" y="220" width="150" height="100" fill="#dcfce7" stroke="#14532d" stroke-width="1.6"/><text x="135.0" y="275.0" text-anchor="middle" fill="#1f2937" font-size="13" font-weight="600">User</text>
+<rect x="790" y="220" width="150" height="100" fill="#dcfce7" stroke="#14532d" stroke-width="1.6"/><text x="865.0" y="275.0" text-anchor="middle" fill="#1f2937" font-size="13" font-weight="600">Manufacturer</text>
+<rect x="415" y="40" width="170" height="70" fill="#dcfce7" stroke="#14532d" stroke-width="1.6"/><text x="500.0" y="80.0" text-anchor="middle" fill="#1f2937" font-size="13" font-weight="600">Administrator</text>
+<line x1="210" y1="250" x2="410" y2="250" stroke="#1f2937" stroke-width="1.5"/><polygon points="410,250 400.5,255.5 400.5,244.5" fill="#1f2937"/><text x="300" y="235" text-anchor="middle" fill="#1f2937" font-size="11">registration, drop-offs, redemptions</text>
+<line x1="410" y1="300" x2="210" y2="300" stroke="#1f2937" stroke-width="1.5"/><polygon points="210,300 219.5,294.5 219.5,305.5" fill="#1f2937"/><text x="300" y="320" text-anchor="middle" fill="#1f2937" font-size="11">dashboard, points, leaderboard</text>
+<line x1="500" y1="110" x2="500" y2="180" stroke="#1f2937" stroke-width="1.5"/><polygon points="500,180 494.5,170.5 505.5,170.5" fill="#1f2937"/><text x="560" y="150" text-anchor="middle" fill="#1f2937" font-size="11">verify, config</text>
+<line x1="540" y1="180" x2="540" y2="110" stroke="#1f2937" stroke-width="1.5"/><polygon points="540,110 545.5,119.5 534.5,119.5" fill="#1f2937"/><text x="610" y="150" text-anchor="middle" fill="#1f2937" font-size="11">stats, pending</text>
+<line x1="790" y1="255" x2="590" y2="255" stroke="#1f2937" stroke-width="1.5"/><polygon points="590,255 599.5,249.5 599.5,260.5" fill="#1f2937"/><text x="690" y="240" text-anchor="middle" fill="#1f2937" font-size="11">profile, schedule</text>
+<line x1="590" y1="300" x2="790" y2="300" stroke="#1f2937" stroke-width="1.5"/><polygon points="790,300 780.5,305.5 780.5,294.5" fill="#1f2937"/><text x="690" y="320" text-anchor="middle" fill="#1f2937" font-size="11">pickup alerts</text>
+</svg>

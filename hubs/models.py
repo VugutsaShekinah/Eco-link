@@ -67,8 +67,7 @@ class Hub(models.Model):
         choices=Status.choices,
         default=Status.ACTIVE,
     )
-    # Manufacturer responsible for collecting from this hub (optional for now;
-    # the scheduling/notification workflow is future work in §5.4.3).
+    # Manufacturer responsible for collecting from this hub.
     manufacturer = models.ForeignKey(
         Manufacturer,
         on_delete=models.SET_NULL,
@@ -77,6 +76,9 @@ class Hub(models.Model):
         related_name="hubs",
         help_text="Certified recycler that collects from this hub.",
     )
+    # Set once the manufacturer has been emailed that the hub is full, so the
+    # alert fires only once per fill cycle (§5.4.3 manufacturer notifications).
+    pickup_notified = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -84,6 +86,13 @@ class Hub(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        # Reopening a hub (setting it Active) clears the pickup alert so the
+        # next time it fills, the manufacturer is notified again.
+        if self.status == self.Status.ACTIVE:
+            self.pickup_notified = False
+        super().save(*args, **kwargs)
 
     @property
     def is_accepting(self):

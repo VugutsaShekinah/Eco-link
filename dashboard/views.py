@@ -10,8 +10,11 @@ All figures are computed live with ORM aggregates rather than stored counters,
 so they are always current (report §4.3.4).
 """
 
+import csv
+
 from django.contrib import messages
 from django.db.models import Count, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
@@ -70,6 +73,33 @@ def verify_dropoff(request, pk):
             f"{dropoff.calculate_points()} eco-points awarded.",
         )
     return redirect("admin_dashboard")
+
+
+@admin_required
+def export_dropoffs_csv(request):
+    """Download every drop-off as a CSV file (§5.4 reporting/data export)."""
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="ecolink_dropoffs.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "ID", "Date", "User", "Hub", "Plastic type",
+        "Weight (kg)", "Points", "Status", "Verified at",
+    ])
+    dropoffs = DropOff.objects.select_related("user", "hub").all()
+    for d in dropoffs:
+        writer.writerow([
+            d.pk,
+            d.created_at.strftime("%Y-%m-%d %H:%M"),
+            d.user.email,
+            d.hub.name,
+            d.get_plastic_type_display(),
+            d.weight_kg,
+            d.calculate_points(),
+            d.get_status_display(),
+            d.verified_at.strftime("%Y-%m-%d %H:%M") if d.verified_at else "",
+        ])
+    return response
 
 
 @admin_required

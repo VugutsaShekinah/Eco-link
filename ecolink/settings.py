@@ -125,6 +125,15 @@ MESSAGE_TAGS = {
 }
 
 
+# Email — console backend in development prints messages to the terminal, so
+# manufacturer pickup alerts work without an SMTP server (§5.4.3). Set a real
+# SMTP backend via EMAIL_BACKEND in production.
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+DEFAULT_FROM_EMAIL = "ECO-LINK <noreply@eco-link.co.ke>"
+
+
 # Internationalization — ECO-LINK operates in Nairobi, Kenya.
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Africa/Nairobi"

@@ -9,15 +9,60 @@ Run with:  ./venv/Scripts/python.exe manage.py test dropoffs
 
 from decimal import Decimal
 
+from django.core import mail
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import User
-from hubs.models import Hub
+from hubs.models import Hub, Manufacturer
 
 from .models import DropOff
 from .points import calculate_points
+
+
+class HubCapacityNotificationTests(TestCase):
+    """Manufacturer is emailed once when a hub fills up (§5.4.3)."""
+
+    def setUp(self):
+        self.user = User.objects.create_user(email="u@example.com", password="x")
+        self.mfr = Manufacturer.objects.create(
+            name="GreenCycle", email="collect@greencycle.co.ke"
+        )
+        self.hub = Hub.objects.create(
+            name="Gate Hub", location="Main gate",
+            capacity_kg=Decimal("5.00"), manufacturer=self.mfr,
+        )
+
+    def _verify(self, kg):
+        return DropOff.objects.create(
+            user=self.user, hub=self.hub, plastic_type="BOTTLES",
+            weight_kg=Decimal(kg), status=DropOff.Status.VERIFIED,
+        )
+
+    def test_no_email_below_capacity(self):
+        self._verify("3.00")
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_email_and_full_status_at_capacity(self):
+        self._verify("3.00")
+        self._verify("2.00")  # total 5.00 == capacity
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("ready for pickup", mail.outbox[0].subject)
+        self.hub.refresh_from_db()
+        self.assertEqual(self.hub.status, Hub.Status.FULL)
+        self.assertTrue(self.hub.pickup_notified)
+
+    def test_email_sent_only_once(self):
+        self._verify("6.00")   # already over capacity -> email
+        self._verify("1.00")   # hub already notified -> no second email
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_no_email_without_manufacturer_email(self):
+        self.mfr.email = ""
+        self.mfr.save()
+        self._verify("6.00")
+        self.assertEqual(len(mail.outbox), 0)
 
 
 class PointsFormulaTests(TestCase):

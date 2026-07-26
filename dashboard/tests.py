@@ -107,3 +107,35 @@ class DashboardActionTests(TestCase):
         )
         other_admin.refresh_from_db()
         self.assertEqual(other_admin.status, User.Status.ACTIVE)  # unchanged
+
+
+class CsvExportTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="admin@example.com", password="x", role=User.Role.ADMIN,
+        )
+        self.student = User.objects.create_user(
+            email="stu@example.com", password="x", role=User.Role.STUDENT,
+        )
+        self.hub = Hub.objects.create(
+            name="Gate Hub", location="Main", capacity_kg=Decimal("100.00")
+        )
+        DropOff.objects.create(
+            user=self.student, hub=self.hub,
+            plastic_type="BOTTLES", weight_kg=Decimal("2.00"),
+        )
+
+    def test_admin_downloads_csv(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse("export_dropoffs_csv"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp["Content-Type"], "text/csv")
+        self.assertIn("attachment", resp["Content-Disposition"])
+        content = resp.content.decode()
+        self.assertIn("Weight (kg)", content)      # header row
+        self.assertIn("stu@example.com", content)  # data row
+
+    def test_non_admin_blocked(self):
+        self.client.force_login(self.student)
+        resp = self.client.get(reverse("export_dropoffs_csv"))
+        self.assertRedirects(resp, reverse("dashboard"))

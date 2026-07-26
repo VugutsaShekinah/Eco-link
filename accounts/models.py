@@ -97,3 +97,12 @@ class User(AbstractUser):
     def is_administrator(self):
         """Convenience check used by role-based access control across the app."""
         return self.role == self.Role.ADMIN
+
+    @property
+    def display_name(self):
+        """
+        Friendly name for greetings: full name if set, else first name, else the
+        part of the email before '@' (so a nameless account shows 'amina', not
+        the whole email address).
+        """
+        return self.get_full_name().strip() or self.first_name or self.email.split("@")[0]

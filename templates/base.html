@@ -39,7 +39,7 @@
                     {% endwith %}
                     <li class="nav-item ms-lg-3">
                         <span class="navbar-text text-white small">
-                            Hi, {{ user.get_full_name|default:user.first_name|default:user.email }}
+                            Hi, {{ user.display_name }}
                         </span>
                     </li>
                     <li class="nav-item ms-lg-2">
