@@ -18,4 +18,6 @@ urlpatterns = [
     path("rewards/", include("rewards.urls")),
     # Administrator dashboard (admin-only)
     path("manage/", include("dashboard.urls")),
+    # Community leaderboard + impact
+    path("leaderboard/", include("leaderboard.urls")),
 ]

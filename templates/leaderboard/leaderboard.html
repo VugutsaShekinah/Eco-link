@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<h3 class="mb-3" style="color:#14532d;">Community leaderboard</h3>
+
+<!-- Programme-wide impact (verified drop-offs only) -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-6">
+    <div class="card border-0 shadow-sm h-100"><div class="card-body text-center py-3">
+      <div class="text-muted small text-uppercase">Kg collected</div>
+      <div class="fs-3 fw-bold text-success">{{ total_kg }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-0 shadow-sm h-100"><div class="card-body text-center py-3">
+      <div class="text-muted small text-uppercase">Items diverted</div>
+      <div class="fs-3 fw-bold text-success">{{ items_diverted }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-0 shadow-sm h-100"><div class="card-body text-center py-3">
+      <div class="text-muted small text-uppercase">Verified drop-offs</div>
+      <div class="fs-3 fw-bold text-success">{{ verified_dropoffs }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="card border-0 shadow-sm h-100"><div class="card-body text-center py-3">
+      <div class="text-muted small text-uppercase">Participants</div>
+      <div class="fs-3 fw-bold text-success">{{ participant_count }}</div>
+    </div></div>
+  </div>
+</div>
+
+{% if my_rank %}
+  <div class="alert alert-success">
+    You are currently ranked <strong>#{{ my_rank }}</strong> with
+    <strong>{{ user.eco_points_balance }}</strong> eco-points. Keep going! 🌿
+  </div>
+{% endif %}
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:80px;">Rank</th><th>Member</th>
+          <th>Role</th><th class="text-end">Eco-points</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for member in rankings %}
+          <tr class="{% if member.pk == user.pk %}table-success fw-semibold{% endif %}">
+            <td>
+              {% if forloop.counter == 1 %}🥇
+              {% elif forloop.counter == 2 %}🥈
+              {% elif forloop.counter == 3 %}🥉
+              {% else %}#{{ forloop.counter }}{% endif %}
+            </td>
+            <td>
+              {{ member.get_full_name|default:member.email }}
+              {% if member.pk == user.pk %}<span class="badge bg-success ms-1">You</span>{% endif %}
+            </td>
+            <td>{{ member.get_role_display }}</td>
+            <td class="text-end">{{ member.eco_points_balance }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-center text-muted py-4">
+            No participants yet. Be the first to log a drop-off!
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted small mt-2">
+  Rankings reflect verified drop-offs only and update every time the page loads.
+</p>
+{% endblock %}

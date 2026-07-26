@@ -49,11 +49,14 @@ def dashboard(request):
     The user's landing page: identity, eco-points balance, and recent drop-offs.
     (Leaderboard rank is added in Milestone 6.)
     """
+    from leaderboard.ranking import participant_rank
+
     recent_dropoffs = request.user.dropoffs.select_related("hub")[:5]
     pending_count = request.user.dropoffs.filter(status="PENDING").count()
     context = {
         "user": request.user,
         "recent_dropoffs": recent_dropoffs,
         "pending_count": pending_count,
+        "my_rank": participant_rank(request.user),
     }
     return render(request, "accounts/dashboard.html", context)

@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "dropoffs",
     "rewards",
     "dashboard",
+    "leaderboard",
 ]
 
 MIDDLEWARE = [
