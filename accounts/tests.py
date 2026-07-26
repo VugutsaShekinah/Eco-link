@@ -69,6 +69,21 @@ class RegistrationTests(TestCase):
         self.assertFalse(User.objects.filter(email="sneaky@example.com").exists())
 
 
+class HomePageTests(TestCase):
+    def test_anonymous_sees_landing_page(self):
+        response = self.client.get(reverse("home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Turn plastic waste into rewards")
+
+    def test_authenticated_user_redirected_to_dashboard(self):
+        user = User.objects.create_user(
+            email="u@example.com", password="x", first_name="U", last_name="One"
+        )
+        self.client.force_login(user)
+        response = self.client.get(reverse("home"))
+        self.assertRedirects(response, reverse("dashboard"))
+
+
 class AuthenticationTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

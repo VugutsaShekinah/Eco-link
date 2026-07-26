@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}ECO-LINK &middot; Recycle. Earn. Impact.{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="hero mb-5">
+  <div class="row align-items-center">
+    <div class="col-lg-7">
+      <h1 class="mb-3">Turn plastic waste into rewards.</h1>
+      <p class="lead mb-4">
+        ECO-LINK connects students, staff, and the community around Riara University
+        with recycling hubs and certified recyclers. Drop off plastic, earn eco-points,
+        and climb the leaderboard — while keeping plastic out of landfills.
+      </p>
+      <a href="{% url 'register' %}" class="btn btn-light btn-lg fw-semibold me-2">Get started</a>
+      <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Log in</a>
+    </div>
+    <div class="col-lg-5 mt-4 mt-lg-0">
+      <div class="row g-3 text-center">
+        <div class="col-6">
+          <div class="bg-white text-dark rounded-3 p-3">
+            <div class="fs-2 fw-bold text-success">{{ total_kg }}</div>
+            <div class="small text-muted text-uppercase">Kg recycled</div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="bg-white text-dark rounded-3 p-3">
+            <div class="fs-2 fw-bold text-success">{{ participant_count }}</div>
+            <div class="small text-muted text-uppercase">Members</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features -->
+<h4 class="text-center mb-4" style="color:#14532d;">Why ECO-LINK?</h4>
+<div class="row g-4 mb-5">
+  <div class="col-md-3 col-6 text-center">
+    <div class="feature-icon mb-2">♻️</div>
+    <h6>Log drop-offs</h6>
+    <p class="text-muted small">Record every plastic deposit at a collection hub in seconds.</p>
+  </div>
+  <div class="col-md-3 col-6 text-center">
+    <div class="feature-icon mb-2">⭐</div>
+    <h6>Earn eco-points</h6>
+    <p class="text-muted small">Get 10 points per kilogram, awarded once your drop-off is verified.</p>
+  </div>
+  <div class="col-md-3 col-6 text-center">
+    <div class="feature-icon mb-2">🎁</div>
+    <h6>Redeem rewards</h6>
+    <p class="text-muted small">Spend points on cafeteria vouchers, certificates, and more.</p>
+  </div>
+  <div class="col-md-3 col-6 text-center">
+    <div class="feature-icon mb-2">🏆</div>
+    <h6>Climb the board</h6>
+    <p class="text-muted small">See your rank and compete with the whole community.</p>
+  </div>
+</div>
+
+<!-- How it works -->
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-body p-4">
+    <h4 class="text-center mb-4" style="color:#14532d;">How it works</h4>
+    <div class="row g-4">
+      <div class="col-md-3 d-flex align-items-start gap-3">
+        <span class="step-number">1</span>
+        <div><strong>Register</strong><p class="text-muted small mb-0">Sign up as a student, staff, or community member.</p></div>
+      </div>
+      <div class="col-md-3 d-flex align-items-start gap-3">
+        <span class="step-number">2</span>
+        <div><strong>Drop off plastic</strong><p class="text-muted small mb-0">Take plastic to a hub and log it on ECO-LINK.</p></div>
+      </div>
+      <div class="col-md-3 d-flex align-items-start gap-3">
+        <span class="step-number">3</span>
+        <div><strong>Get verified</strong><p class="text-muted small mb-0">An admin confirms the weight and awards your points.</p></div>
+      </div>
+      <div class="col-md-3 d-flex align-items-start gap-3">
+        <span class="step-number">4</span>
+        <div><strong>Redeem &amp; rank</strong><p class="text-muted small mb-0">Spend points on rewards and rise up the leaderboard.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center py-3">
+  <a href="{% url 'register' %}" class="btn btn-success btn-lg">Join ECO-LINK today</a>
+</div>
+{% endblock %}

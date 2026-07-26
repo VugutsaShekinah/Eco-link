@@ -12,13 +12,27 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
 from .forms import RegistrationForm
+from .models import User
 
 
 def home(request):
-    """Root URL: send logged-in users to their dashboard, others to login."""
+    """
+    Root URL. Logged-in users go to their dashboard; visitors see a public
+    landing page with live programme impact numbers.
+    """
     if request.user.is_authenticated:
         return redirect("dashboard")
-    return redirect("login")
+
+    from django.db.models import Sum
+
+    from dropoffs.models import DropOff
+
+    verified = DropOff.objects.filter(status=DropOff.Status.VERIFIED)
+    context = {
+        "total_kg": verified.aggregate(t=Sum("weight_kg"))["t"] or 0,
+        "participant_count": User.objects.exclude(role=User.Role.ADMIN).count(),
+    }
+    return render(request, "accounts/home.html", context)
 
 
 def register(request):

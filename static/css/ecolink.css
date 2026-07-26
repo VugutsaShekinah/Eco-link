@@ -1,22 +1,112 @@
-/* ECO-LINK custom styles. Bootstrap 5 does the heavy lifting; this file holds
-   small brand touches. Expanded in Milestone 7 (styling). */
+/* ============================================================
+   ECO-LINK theme. Bootstrap 5 provides the components; this
+   file adds the brand identity: colours, hero, cards, buttons.
+   ============================================================ */
 
 :root {
     --eco-green: #16a34a;
     --eco-green-dark: #14532d;
+    --eco-green-light: #dcfce7;
+    --eco-ink: #1f2937;
 }
 
-/* Green accent for the role-selection pills on the registration page */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    color: var(--eco-ink);
+}
+
+main {
+    flex: 1 0 auto;          /* sticky footer: main grows, footer sits at bottom */
+}
+
+/* ---------- Navbar ---------- */
+.navbar-brand {
+    letter-spacing: 0.3px;
+}
+.navbar .nav-link.active {
+    color: #fff !important;
+    border-bottom: 2px solid #fff;
+}
+
+/* ---------- Buttons ---------- */
+.btn-success {
+    --bs-btn-bg: var(--eco-green);
+    --bs-btn-border-color: var(--eco-green);
+    --bs-btn-hover-bg: var(--eco-green-dark);
+    --bs-btn-hover-border-color: var(--eco-green-dark);
+    --bs-btn-active-bg: var(--eco-green-dark);
+}
+.btn-outline-success {
+    --bs-btn-color: var(--eco-green);
+    --bs-btn-border-color: var(--eco-green);
+    --bs-btn-hover-bg: var(--eco-green);
+    --bs-btn-hover-border-color: var(--eco-green);
+}
+.text-success { color: var(--eco-green) !important; }
+.bg-success { background-color: var(--eco-green) !important; }
+
+/* ---------- Cards ---------- */
+.card {
+    border-radius: 12px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card.hoverable:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ---------- Role tabs on registration ---------- */
 #roleTabs .nav-link {
     color: var(--eco-green-dark);
     cursor: pointer;
 }
-
 #roleTabs .nav-link.active {
     background-color: var(--eco-green);
     color: #fff;
 }
 
-.card {
-    border-radius: 10px;
+/* ---------- Landing hero ---------- */
+.hero {
+    background: linear-gradient(135deg, var(--eco-green-dark) 0%, var(--eco-green) 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 3.5rem 2rem;
+}
+.hero h1 {
+    font-weight: 800;
+    line-height: 1.15;
+}
+.hero .lead {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.feature-icon {
+    width: 56px;
+    height: 56px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--eco-green-light);
+    color: var(--eco-green-dark);
+    font-size: 1.6rem;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--eco-green);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ---------- Footer ---------- */
+footer {
+    flex-shrink: 0;
 }
