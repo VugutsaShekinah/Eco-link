@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}My drop-offs &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0" style="color:#14532d;">My drop-offs</h3>
+  <a href="{% url 'log_dropoff' %}" class="btn btn-success btn-sm">+ Log new drop-off</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th><th>Hub</th><th>Type</th>
+          <th class="text-end">Weight</th><th class="text-end">Points</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dropoffs %}
+          <tr>
+            <td>{{ d.created_at|date:"d M Y, H:i" }}</td>
+            <td>{{ d.hub.name }}</td>
+            <td>{{ d.get_plastic_type_display }}</td>
+            <td class="text-end">{{ d.weight_kg }} kg</td>
+            <td class="text-end fw-semibold">{{ d.calculate_points }}</td>
+            <td>
+              {% if d.is_verified %}
+                <span class="badge bg-success">Verified</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">
+            No drop-offs yet. <a href="{% url 'log_dropoff' %}">Log your first one!</a>
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -12,4 +12,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     # Authentication + dashboard (home, register, login, logout, dashboard)
     path("", include("accounts.urls")),
+    # Drop-off logging and history
+    path("dropoffs/", include("dropoffs.urls")),
 ]

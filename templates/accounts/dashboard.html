@@ -29,14 +29,56 @@
   <div class="col-md-4">
     <div class="card border-0 shadow-sm">
       <div class="card-body text-center">
-        <div class="text-muted small text-uppercase">Recent drop-offs</div>
-        <div class="fs-4 fw-semibold text-muted">Coming soon</div>
+        <div class="text-muted small text-uppercase">Pending verification</div>
+        <div class="display-6 fw-bold text-warning">{{ pending_count }}</div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="alert alert-info mt-4 mb-0 small">
-  Drop-off logging, rewards, and the community leaderboard arrive in the next milestones.
+<div class="d-flex justify-content-between align-items-center mt-4 mb-2">
+  <h5 class="mb-0">Recent drop-offs</h5>
+  <a href="{% url 'log_dropoff' %}" class="btn btn-success btn-sm">+ Log a drop-off</a>
 </div>
+
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Date</th><th>Hub</th><th>Type</th>
+          <th class="text-end">Weight</th><th class="text-end">Points</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in recent_dropoffs %}
+          <tr>
+            <td>{{ d.created_at|date:"d M Y, H:i" }}</td>
+            <td>{{ d.hub.name }}</td>
+            <td>{{ d.get_plastic_type_display }}</td>
+            <td class="text-end">{{ d.weight_kg }} kg</td>
+            <td class="text-end fw-semibold">{{ d.calculate_points }}</td>
+            <td>
+              {% if d.is_verified %}
+                <span class="badge bg-success">Verified</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4">
+            No drop-offs yet. <a href="{% url 'log_dropoff' %}">Log your first one!</a>
+          </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if recent_dropoffs %}
+  <div class="text-end mt-2">
+    <a href="{% url 'my_dropoffs' %}" class="small">View all my drop-offs →</a>
+  </div>
+{% endif %}
 {% endblock %}

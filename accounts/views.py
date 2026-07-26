@@ -46,8 +46,14 @@ def register(request):
 @login_required
 def dashboard(request):
     """
-    The user's landing page after login. For now it shows identity and the
-    eco-points balance; drop-off history and leaderboard rank are added in later
-    milestones once those models exist.
+    The user's landing page: identity, eco-points balance, and recent drop-offs.
+    (Leaderboard rank is added in Milestone 6.)
     """
-    return render(request, "accounts/dashboard.html", {"user": request.user})
+    recent_dropoffs = request.user.dropoffs.select_related("hub")[:5]
+    pending_count = request.user.dropoffs.filter(status="PENDING").count()
+    context = {
+        "user": request.user,
+        "recent_dropoffs": recent_dropoffs,
+        "pending_count": pending_count,
+    }
+    return render(request, "accounts/dashboard.html", context)

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Log a drop-off &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h3 class="mb-1" style="color:#14532d;">Log a plastic drop-off</h3>
+        <p class="text-muted small mb-4">Record what you deposited at a collection hub.</p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Collection hub</label>
+            {{ form.hub }}
+            {% for e in form.hub.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Plastic type</label>
+            {{ form.plastic_type }}
+            {% for e in form.plastic_type.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Weight (kg)</label>
+            {{ form.weight_kg }}
+            {% for e in form.weight_kg.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Live eco-points preview (report §4.3.3). Mirrors the server-side
+               rate exactly, so the number never changes on submit. -->
+          <div class="alert alert-success d-flex justify-content-between align-items-center" id="pointsPreview">
+            <span>Eco-points you'll earn</span>
+            <span class="fs-4 fw-bold" id="pointsValue">0</span>
+          </div>
+          <p class="text-muted small">Rate: {{ points_per_kg }} points per kg. Awarded once an admin verifies your drop-off.</p>
+
+          <button type="submit" class="btn btn-success w-100">Log drop-off</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Live preview: weight × rate, using the SAME rate the server applies.
+  (function () {
+    var RATE = {{ points_per_kg }};
+    var weightInput = document.getElementById("id_weight_kg");
+    var out = document.getElementById("pointsValue");
+
+    function update() {
+      var kg = parseFloat(weightInput.value);
+      out.textContent = (isNaN(kg) || kg <= 0) ? "0" : Math.floor(kg * RATE);
+    }
+    weightInput.addEventListener("input", update);
+    update();
+  })();
+</script>
+{% endblock %}

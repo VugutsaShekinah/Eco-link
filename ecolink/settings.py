@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # ECO-LINK apps (built milestone by milestone)
     "accounts",
     "hubs",
+    "dropoffs",
 ]
 
 MIDDLEWARE = [
