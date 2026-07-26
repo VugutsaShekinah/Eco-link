@@ -210,7 +210,90 @@ Login flow (email-based)
     <li>Tested: register, duplicate-email, admin-block, email login, logout, auth guard (6/6 pass).</li>
 </ul>
 
-<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-1 complete.</p>
+<!-- =================== MILESTONE 2 =================== -->
+<h2 class="pagebreak">Milestone 2 - Hubs &amp; Manufacturers <span class="tag">DONE</span></h2>
+
+<h3>What we built</h3>
+<ul>
+    <li><b>Hub</b> model - a physical collection point: name, location, capacity (kg), status.</li>
+    <li><b>Manufacturer</b> model - a certified recycler that collects verified plastic.</li>
+    <li>Admin screens to create/manage both, plus a <code>seed_hubs</code> command for demo data.</li>
+</ul>
+
+<h3>Why it's needed</h3>
+<ul>
+    <li>Both are entities in the report's ERD (§3.3.3).</li>
+    <li>A drop-off (next milestone) must point at a hub, so hubs must exist first.</li>
+    <li>Admins manage hubs and recyclers (§3.2.3.3).</li>
+</ul>
+
+<h3>Django concepts (simple version)</h3>
+<table>
+<tr><th>Concept</th><th>In one line</th></tr>
+<tr><td><b>Model</b></td><td>A Python class that becomes a database table; each attribute is a column.</td></tr>
+<tr><td><b>Field types</b></td><td><code>CharField</code>=text, <code>DecimalField</code>=exact numbers (weights/money), <code>BooleanField</code>=yes/no.</td></tr>
+<tr><td><b>TextChoices</b></td><td>A fixed menu of values (Active/Full/Closed) stored as short codes.</td></tr>
+<tr><td><b>ForeignKey</b></td><td>A link from one row to another (each Hub optionally links to one Manufacturer).</td></tr>
+<tr><td><b>on_delete=SET_NULL</b></td><td>If the linked recycler is deleted, blank the link instead of deleting the hub.</td></tr>
+<tr><td><b>Migration</b></td><td>An auto-generated, version-controlled script that changes the DB schema.</td></tr>
+<tr><td><b>@property</b></td><td>A computed attribute (e.g. <code>hub.is_accepting</code>) - looks like a field, runs code.</td></tr>
+<tr><td><b>ModelAdmin</b></td><td>Auto-built CRUD screens for staff, configured with list/search/filter options.</td></tr>
+</table>
+
+<h3>The two tables</h3>
+<div class="flow">Manufacturer                     Hub
++-----------------+              +---------------------+
+| name            |  1        *  | name                |
+| email, phone    |&lt;-------------| location            |
+| location        |  collects    | capacity_kg         |
+| materials       |              | status (Active/...) |
+| is_certified    |              | manufacturer (FK)   |
++-----------------+              +---------------------+
+   one recycler  ->  serves many hubs   (SET_NULL on delete)</div>
+
+<h3>Files involved</h3>
+<table>
+<tr><th>File</th><th>Role</th></tr>
+<tr><td><code>hubs/models.py</code></td><td>Hub + Manufacturer definitions.</td></tr>
+<tr><td><code>hubs/admin.py</code></td><td>Admin list/search/filter config; inline status editing.</td></tr>
+<tr><td><code>hubs/migrations/0001_initial.py</code></td><td>Creates the two tables in PostgreSQL.</td></tr>
+<tr><td><code>hubs/management/commands/seed_hubs.py</code></td><td>Re-runnable demo data (4 hubs + 1 recycler).</td></tr>
+</table>
+
+<h3>Commands used</h3>
+<div class="flow">manage.py makemigrations hubs   # write the change script
+manage.py migrate hubs          # apply it to PostgreSQL
+manage.py seed_hubs             # load demo hubs + manufacturer</div>
+
+<div class="tip"><b>makemigrations vs migrate:</b> <i>makemigrations</i> only WRITES the plan (a Python file). <i>migrate</i> RUNS it against the database. Two separate steps on purpose - you can review the plan before applying it.</div>
+
+<div class="warn"><b>Common mistake:</b> using <code>FloatField</code> for weights. Floats are approximate (0.1+0.2 != 0.3). We use <code>DecimalField</code> so kilograms and points are exact.</div>
+
+<h3>Viva questions &amp; model answers</h3>
+<p class="q">Q1. What is a ForeignKey and why did you use one here?</p>
+<p class="a">It's a link between rows. Each Hub can be collected by one Manufacturer, and one Manufacturer can serve many Hubs - a one-to-many relationship - so Hub holds a ForeignKey to Manufacturer.</p>
+
+<p class="q">Q2. What does on_delete=SET_NULL do, and why not CASCADE?</p>
+<p class="a">If a manufacturer record is deleted, SET_NULL just clears the link on each hub and keeps the hubs. CASCADE would delete the hubs too, which would be wrong - the physical collection points still exist even if we drop a recycler.</p>
+
+<p class="q">Q3. Why DecimalField for capacity instead of a normal number?</p>
+<p class="a">Because weights need exact precision. Floating-point numbers introduce tiny rounding errors, which is unacceptable when they feed into eco-point calculations. Decimal stores the exact value.</p>
+
+<p class="q">Q4. What is a migration?</p>
+<p class="a">A migration is an auto-generated, version-controlled Python script describing a database change. <code>makemigrations</code> creates it from my models; <code>migrate</code> applies it. It lets the schema evolve safely and be reproduced on any machine.</p>
+
+<p class="q">Q5. How do administrators manage hubs?</p>
+<p class="a">Through the Django admin. I registered both models with ModelAdmin classes that add search, filters, and inline status editing, so an admin can create a hub, set its capacity, assign a recycler, and flip its status without writing any code.</p>
+
+<h3>Key points to remember</h3>
+<ul>
+    <li>Hub fields = name, location, capacity_kg, status, manufacturer(FK) - straight from the ERD.</li>
+    <li>Manufacturers are external stakeholders: stored and managed, but they don't log in (§1.5).</li>
+    <li><code>is_accepting</code> is a property = True only when status is Active (used when logging drop-offs next).</li>
+    <li>Tested: str output, defaults, is_accepting, capacity validation, SET_NULL (7/7 pass).</li>
+</ul>
+
+<p class="footer">ECO-LINK Development Notes - updated per task. Milestones 0-2 complete.</p>
 
 </body>
 </html>
