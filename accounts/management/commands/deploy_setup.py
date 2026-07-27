@@ -6,13 +6,17 @@ the deploy build to guarantee the app is usable:
 
   1. seeds the collection hub + manufacturers + rewards (so the drop-off form is
      never empty), and
-  2. creates an administrator account from environment variables, if provided.
+  2. guarantees a working administrator account you can always log in with.
 
 Everything here is safe to run on every deploy — it never duplicates data.
 
-Set these env vars (in the Render dashboard) to get an admin account:
-    DJANGO_SUPERUSER_EMAIL, DJANGO_SUPERUSER_PASSWORD
-    (optional) DJANGO_SUPERUSER_FIRST_NAME, DJANGO_SUPERUSER_LAST_NAME
+Admin login:
+  * If you set DJANGO_SUPERUSER_EMAIL and DJANGO_SUPERUSER_PASSWORD (host
+    dashboard), those are used.
+  * Otherwise a DEFAULT admin is created/refreshed so you are never locked out:
+        email:    admin@eco-link.co.ke
+        password: EcoLink2026!
+    (Change this password after logging in.)
 """
 
 import os
@@ -21,9 +25,12 @@ from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 
+DEFAULT_ADMIN_EMAIL = "admin@eco-link.co.ke"
+DEFAULT_ADMIN_PASSWORD = "EcoLink2026!"
+
 
 class Command(BaseCommand):
-    help = "Seed baseline data and ensure an admin account exists (idempotent)."
+    help = "Seed baseline data and ensure a working admin account (idempotent)."
 
     def handle(self, *args, **options):
         # 1. Baseline data so the app works immediately.
@@ -37,18 +44,18 @@ class Command(BaseCommand):
         if os.environ.get("RUN_SEED_DEMO") == "1":
             call_command("seed_demo", stdout=self.stdout)
 
-        # 2. Admin account from environment variables (if configured).
-        #    This is AUTHORITATIVE: the env email + password always work after a
-        #    deploy, so a forgotten password can never lock you out — just update
-        #    the values in the host dashboard and redeploy.
-        email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
-        password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
+        # 2. Ensure a working admin account.
+        #    Prefer env-var credentials; otherwise fall back to a documented
+        #    default so you can always log in without touching the dashboard.
+        env_email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
+        env_password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
 
-        if not (email and password):
-            self.stdout.write(
-                "No DJANGO_SUPERUSER_EMAIL/PASSWORD set - skipping admin setup."
+        if env_email and env_password:
+            email, password, using_default = env_email, env_password, False
+        else:
+            email, password, using_default = (
+                DEFAULT_ADMIN_EMAIL, DEFAULT_ADMIN_PASSWORD, True,
             )
-            return
 
         User = get_user_model()
         user = User.objects.filter(email__iexact=email).first()
@@ -60,15 +67,18 @@ class Command(BaseCommand):
                 first_name=os.environ.get("DJANGO_SUPERUSER_FIRST_NAME", "Admin"),
                 last_name=os.environ.get("DJANGO_SUPERUSER_LAST_NAME", ""),
             )
-            self.stdout.write(self.style.SUCCESS(f"Created admin account: {email}"))
+            action = "Created"
         else:
-            # Ensure it's a full admin and reset the password to match the env.
+            # Make sure it's a full admin and set the password so it always works.
             user.role = User.Role.ADMIN
             user.status = User.Status.ACTIVE
             user.is_staff = True
             user.is_superuser = True
             user.set_password(password)
             user.save()
-            self.stdout.write(self.style.SUCCESS(
-                f"Updated admin account {email} (password set from environment)."
-            ))
+            action = "Reset"
+
+        note = "  <-- DEFAULT login, change the password after logging in" if using_default else ""
+        self.stdout.write(self.style.SUCCESS(
+            f"{action} admin login:  {email}  /  {password}{note}"
+        ))

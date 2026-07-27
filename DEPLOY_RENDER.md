@@ -17,14 +17,8 @@ Render reads the `render.yaml` file in your project and already knows how to set
 everything up (the app **and** the database).
 
 ## Step 3 — Type your admin login
-Render will ask you to fill in two boxes:
-
-| Box | What to type |
-|-----|--------------|
-| `DJANGO_SUPERUSER_EMAIL` | an email you'll remember, e.g. `admin@eco-link.co.ke` |
-| `DJANGO_SUPERUSER_PASSWORD` | a strong password you'll remember |
-
-This becomes your admin account on the live site.
+You don't need to type anything here — just click through. A ready-to-use admin
+account is created for you automatically (see Step 5).
 
 ## Step 4 — Click Apply and wait
 1. Click **Apply** (or **Create**).
@@ -35,16 +29,27 @@ While it builds, the **Logs** should show:
 ```
 Seed complete: 1 hub(s) ... 2 manufacturers.
 Seed complete: 5 rewards ...
-Created admin account: admin@eco-link.co.ke
+Created admin login:  admin@eco-link.co.ke  /  EcoLink2026!  <-- DEFAULT login
 ```
 
-## Step 5 — Open and use your site
+## Step 5 — Open and log in
 1. Click the link at the top (ends in `.onrender.com`).
 2. You'll see the ECO-LINK home page. 🎉
-3. Click **Log in** and use the admin email + password from Step 3.
+3. Click **Log in** and use the **default admin login**:
+
+   | | |
+   |---|---|
+   | **Email** | `admin@eco-link.co.ke` |
+   | **Password** | `EcoLink2026!` |
+
 4. Go to **Log Drop-off** — the **Main Gate Hub** is in the dropdown. ✅
 
-**That's it — your project is online.**
+**That's it — your project is online, and you can log in as admin.**
+
+> 🔒 **Change this password** once you're in (top-right **CHANGE PASSWORD** on the
+> `/admin/` page), since it's written in this guide. To use your *own* email and
+> password instead, add `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD`
+> in Render's **Environment** tab and redeploy.
 
 ---
 
@@ -52,8 +57,7 @@ Created admin account: admin@eco-link.co.ke
 
 | Problem | Fix |
 |---------|-----|
-| Dropdown for hub is empty | Open your service → **Manual Deploy** → **Deploy latest commit**, wait for Live, refresh. |
-| Can't log in as admin | Go to **Environment** tab, check `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD` are set, then redeploy. |
+| Dropdown for hub is empty, or can't log in as admin | Open your service → **Manual Deploy** → **Deploy latest commit**, wait for Live, then use the default admin login above. |
 | Page is slow to load | Normal on the free plan — it "sleeps" after 15 min idle and takes ~50s to wake the first time. |
 | CSS/logo missing | Redeploy; the build step handles static files automatically. |
 

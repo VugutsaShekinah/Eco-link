@@ -130,6 +130,18 @@ class DeploySetupCommandTests(TestCase):
         self.assertTrue(admin.is_superuser)
         self.assertTrue(admin.is_administrator)
 
+    def test_creates_default_admin_when_no_env_vars(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        # No DJANGO_SUPERUSER_* set -> a documented default admin is created.
+        call_command("deploy_setup", stdout=StringIO())
+
+        admin = User.objects.get(email="admin@eco-link.co.ke")
+        self.assertTrue(admin.is_administrator)
+        self.assertTrue(admin.check_password("EcoLink2026!"))
+
     def test_resets_existing_account_to_admin_with_new_password(self):
         import os
         from io import StringIO
