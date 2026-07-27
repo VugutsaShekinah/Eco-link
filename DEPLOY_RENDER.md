@@ -57,6 +57,21 @@ Created admin account: admin@eco-link.co.ke
 | Page is slow to load | Normal on the free plan — it "sleeps" after 15 min idle and takes ~50s to wake the first time. |
 | CSS/logo missing | Redeploy; the build step handles static files automatically. |
 
+## Sharing your site with other people
+You do **not** share your admin login. Just send them the link — each person
+makes their own account:
+1. They open the link and click **Register**.
+2. They choose **Student**, **Staff**, or **Community** and set their own email + password.
+3. They can log drop-offs, earn eco-points, redeem rewards, and see the leaderboard.
+
+Only **your** admin account can verify drop-offs, record sales, and open the Admin
+Dashboard — regular users are automatically blocked from those pages.
+
+> **Tip:** a drop-off a user logs stays **Pending** until you (admin) verify it,
+> then their eco-points appear. To promote someone else to admin, open `/admin/`
+> → **Users** → their account → set **Role = Administrator** and tick **is staff**
+> and **is superuser** → **Save**.
+
 ## Good to know (free plan)
 - The site sleeps when unused and wakes on the next visit (~50s).
 - The free database is removed after about 30 days — just create the Blueprint
