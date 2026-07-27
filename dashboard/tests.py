@@ -109,6 +109,50 @@ class DashboardActionTests(TestCase):
         self.assertEqual(other_admin.status, User.Status.ACTIVE)  # unchanged
 
 
+class RecordCollectionTests(TestCase):
+    def setUp(self):
+        from hubs.models import Collection, Manufacturer
+
+        self.Collection = Collection
+        self.admin = User.objects.create_user(
+            email="admin@example.com", password="x", role=User.Role.ADMIN,
+        )
+        self.student = User.objects.create_user(
+            email="stu@example.com", password="x", role=User.Role.STUDENT,
+        )
+        self.mfr = Manufacturer.objects.create(
+            name="PolyAfric", price_per_kg=Decimal("30.00")
+        )
+        self.hub = Hub.objects.create(
+            name="Gate Hub", location="Main", capacity_kg=Decimal("100.00"),
+            manufacturer=self.mfr, status=Hub.Status.FULL,
+        )
+
+    def test_non_admin_blocked(self):
+        self.client.force_login(self.student)
+        resp = self.client.get(reverse("record_collection"))
+        self.assertRedirects(resp, reverse("dashboard"))
+
+    def test_admin_sees_form(self):
+        self.client.force_login(self.admin)
+        resp = self.client.get(reverse("record_collection") + f"?hub={self.hub.pk}")
+        self.assertEqual(resp.status_code, 200)
+
+    def test_recording_sale_creates_collection_and_reopens_hub(self):
+        self.client.force_login(self.admin)
+        resp = self.client.post(reverse("record_collection"), {
+            "hub": self.hub.pk, "manufacturer": self.mfr.pk,
+            "weight_kg": "40.00", "price_per_kg": "30.00", "notes": "",
+        })
+        self.assertRedirects(resp, reverse("admin_dashboard"))
+
+        collection = self.Collection.objects.get()
+        self.assertEqual(collection.amount, Decimal("1200.00"))  # 40 * 30
+        self.hub.refresh_from_db()
+        self.assertEqual(self.hub.status, Hub.Status.ACTIVE)  # emptied/reopened
+        self.assertFalse(self.hub.pickup_notified)
+
+
 class CsvExportTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user(

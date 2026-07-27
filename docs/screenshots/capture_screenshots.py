@@ -58,6 +58,7 @@ def run():
         page.goto(f"{BASE}/leaderboard/");      shot(page, "08_leaderboard")
         page.goto(f"{BASE}/manage/");           shot(page, "09_admin_dashboard")
         page.goto(f"{BASE}/manage/users/");     shot(page, "10_manage_users")
+        page.goto(f"{BASE}/manage/collections/new/"); shot(page, "11_record_sale")
 
         browser.close()
     print("Done. Screenshots in docs/screenshots/")

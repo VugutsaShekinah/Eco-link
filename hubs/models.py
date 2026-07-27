@@ -9,8 +9,11 @@ Two entities from the report's ERD (§3.3.3):
                  hubs (§3.3.3, §5.4.3). External stakeholder — no login (§1.5).
 """
 
+from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Sum
 
 
 class Manufacturer(models.Model):
@@ -25,6 +28,15 @@ class Manufacturer(models.Model):
         max_length=255,
         blank=True,
         help_text="Plastic types this recycler accepts, e.g. 'Bottles, Hard plastics'.",
+    )
+    # Default price (KES) this recycler pays per kilogram of plastic. Used to
+    # pre-fill the amount when recording a sale/collection.
+    price_per_kg = models.DecimalField(
+        "buying price per kg (KES)",
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        validators=[MinValueValidator(0)],
     )
     is_certified = models.BooleanField(
         default=True,
@@ -98,3 +110,65 @@ class Hub(models.Model):
     def is_accepting(self):
         """True when the hub can currently take new drop-offs."""
         return self.status == self.Status.ACTIVE
+
+    @property
+    def verified_kg(self):
+        """Total verified plastic ever dropped at this hub (lifetime)."""
+        return self.dropoffs.filter(status="VERIFIED").aggregate(
+            t=Sum("weight_kg"))["t"] or Decimal("0")
+
+    @property
+    def collected_kg(self):
+        """Total plastic already sold/collected from this hub by manufacturers."""
+        return self.collections.aggregate(t=Sum("weight_kg"))["t"] or Decimal("0")
+
+    @property
+    def current_load_kg(self):
+        """Plastic currently sitting in the hub = verified minus already collected."""
+        return self.verified_kg - self.collected_kg
+
+
+class Collection(models.Model):
+    """
+    A sale: a certified manufacturer collects (buys) plastic from a hub.
+
+    Records the weight taken, the agreed price per kg, and the resulting amount
+    paid — turning the collected plastic into tracked revenue (report Abstract /
+    §1.4: plastic has real value as a raw material).
+    """
+
+    hub = models.ForeignKey(
+        Hub, on_delete=models.PROTECT, related_name="collections"
+    )
+    manufacturer = models.ForeignKey(
+        Manufacturer, on_delete=models.PROTECT, related_name="collections"
+    )
+    weight_kg = models.DecimalField(
+        "weight collected (kg)",
+        max_digits=8, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
+    price_per_kg = models.DecimalField(
+        "price per kg (KES)",
+        max_digits=8, decimal_places=2,
+        validators=[MinValueValidator(0)],
+    )
+    # Snapshot of weight * price at collection time (KES).
+    amount = models.DecimalField(
+        "amount paid (KES)",
+        max_digits=12, decimal_places=2,
+        editable=False, default=Decimal("0.00"),
+    )
+    collected_at = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-collected_at"]
+
+    def save(self, *args, **kwargs):
+        # Keep the amount consistent with weight x price.
+        self.amount = (self.weight_kg or 0) * (self.price_per_kg or 0)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.manufacturer.name} bought {self.weight_kg}kg from {self.hub.name} (KES {self.amount})"

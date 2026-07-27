@@ -21,8 +21,10 @@ from django.views.decorators.http import require_POST
 from accounts.decorators import admin_required
 from accounts.models import User
 from dropoffs.models import DropOff
-from hubs.models import Hub
+from hubs.models import Collection, Hub
 from rewards.models import Redemption
+
+from .forms import CollectionForm
 
 
 def _stats():
@@ -32,6 +34,7 @@ def _stats():
     kg_collected = verified.aggregate(t=Sum("weight_kg"))["t"] or 0
     balance_total = User.objects.aggregate(t=Sum("eco_points_balance"))["t"] or 0
     spent_total = Redemption.objects.aggregate(t=Sum("points_spent"))["t"] or 0
+    sales = Collection.objects.aggregate(kg=Sum("weight_kg"), rev=Sum("amount"))
 
     return {
         "total_users": User.objects.count(),
@@ -43,6 +46,9 @@ def _stats():
         "total_redemptions": Redemption.objects.count(),
         "total_hubs": Hub.objects.count(),
         "active_hubs": Hub.objects.filter(status=Hub.Status.ACTIVE).count(),
+        # Manufacturer sales (revenue from selling plastic).
+        "kg_sold": sales["kg"] or 0,
+        "revenue": sales["rev"] or 0,
     }
 
 
@@ -50,6 +56,8 @@ def _stats():
 def admin_dashboard(request):
     """Stats overview + the queue of drop-offs awaiting verification."""
     context = _stats()
+    context["hubs_ready"] = Hub.objects.filter(
+        status=Hub.Status.FULL).select_related("manufacturer")
     context["pending_dropoffs"] = (
         DropOff.objects.filter(status=DropOff.Status.PENDING)
         .select_related("user", "hub")[:15]
@@ -73,6 +81,44 @@ def verify_dropoff(request, pk):
             f"{dropoff.calculate_points()} eco-points awarded.",
         )
     return redirect("admin_dashboard")
+
+
+@admin_required
+def record_collection(request):
+    """
+    Record a manufacturer buying plastic from a hub (a sale). On success the hub
+    is emptied — set back to Active so it can fill up again — and the amount paid
+    is tracked as revenue.
+    """
+    if request.method == "POST":
+        form = CollectionForm(request.POST)
+        if form.is_valid():
+            collection = form.save()
+            hub = collection.hub
+            hub.status = Hub.Status.ACTIVE  # save() clears pickup_notified
+            hub.save()
+            messages.success(
+                request,
+                f"Recorded sale: {collection.manufacturer.name} bought "
+                f"{collection.weight_kg}kg from {hub.name} for KES {collection.amount}. "
+                f"{hub.name} is active again.",
+            )
+            return redirect("admin_dashboard")
+    else:
+        # Pre-fill from a hub chosen on the dashboard (?hub=<id>).
+        initial = {}
+        hub_id = request.GET.get("hub")
+        if hub_id:
+            hub = Hub.objects.filter(pk=hub_id).first()
+            if hub:
+                initial["hub"] = hub
+                initial["weight_kg"] = hub.current_load_kg
+                if hub.manufacturer:
+                    initial["manufacturer"] = hub.manufacturer
+                    initial["price_per_kg"] = hub.manufacturer.price_per_kg
+        form = CollectionForm(initial=initial)
+
+    return render(request, "dashboard/record_collection.html", {"form": form})
 
 
 @admin_required

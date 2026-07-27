@@ -23,6 +23,19 @@ class Command(BaseCommand):
                 "phone_number": "+254700000000",
                 "location": "Industrial Area, Nairobi",
                 "materials_accepted": "Bottles, Hard plastics, Mixed plastics",
+                "price_per_kg": Decimal("25.00"),
+            },
+        )
+        # A second certified recycler (PolyAfric makes fencing posts and boards
+        # from recycled plastic) that the university can also sell to.
+        Manufacturer.objects.get_or_create(
+            name="PolyAfric Recycling",
+            defaults={
+                "email": "buy@polyafric.co.ke",
+                "phone_number": "+254711000000",
+                "location": "Athi River, Machakos",
+                "materials_accepted": "Hard plastics, Bottles",
+                "price_per_kg": Decimal("30.00"),
             },
         )
 
@@ -38,5 +51,5 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS(
             f"Seed complete: {Hub.objects.count()} hub(s) "
-            f"({int(was_created)} new), 1 manufacturer."
+            f"({int(was_created)} new), {Manufacturer.objects.count()} manufacturers."
         ))

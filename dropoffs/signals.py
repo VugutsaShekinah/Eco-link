@@ -8,7 +8,6 @@ idempotent — re-saving an already-verified drop-off never awards points twice.
 """
 
 from django.core.mail import send_mail
-from django.db.models import Sum
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -48,17 +47,16 @@ def notify_manufacturer_if_hub_full(sender, instance, **kwargs):
     if hub.pickup_notified or not hub.manufacturer or not hub.manufacturer.email:
         return
 
-    collected = (
-        hub.dropoffs.filter(status=DropOff.Status.VERIFIED)
-        .aggregate(t=Sum("weight_kg"))["t"] or 0
-    )
-    if collected >= hub.capacity_kg:
+    # Use the hub's CURRENT load (verified minus already collected) so a hub can
+    # fill, be emptied by a sale, and fill again.
+    load = hub.current_load_kg
+    if load >= hub.capacity_kg:
         send_mail(
             subject=f"[ECO-LINK] {hub.name} is ready for pickup",
             message=(
                 f"Hi {hub.manufacturer.name},\n\n"
                 f"{hub.name} at {hub.location} has reached its capacity of "
-                f"{hub.capacity_kg} kg ({collected} kg collected). "
+                f"{hub.capacity_kg} kg ({load} kg currently held). "
                 f"Please schedule a collection.\n\n— ECO-LINK"
             ),
             from_email=None,  # uses DEFAULT_FROM_EMAIL

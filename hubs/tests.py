@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.test import TestCase
 
-from .models import Hub, Manufacturer
+from .models import Collection, Hub, Manufacturer
 
 
 class SeedHubsCommandTests(TestCase):
@@ -77,3 +77,46 @@ class HubModelTests(TestCase):
         hub.refresh_from_db()
         self.assertIsNone(hub.manufacturer)
         self.assertTrue(Hub.objects.filter(pk=hub.pk).exists())
+
+
+class CollectionAndLoadTests(TestCase):
+    def setUp(self):
+        from accounts.models import User
+        from dropoffs.models import DropOff
+
+        self.User = User
+        self.DropOff = DropOff
+        self.mfr = Manufacturer.objects.create(
+            name="PolyAfric", email="buy@poly.co.ke", price_per_kg=Decimal("30.00")
+        )
+        self.hub = Hub.objects.create(
+            name="Gate", location="Main gate",
+            capacity_kg=Decimal("100.00"), manufacturer=self.mfr,
+        )
+        self.user = User.objects.create_user(email="u@example.com", password="x")
+
+    def _verify(self, kg):
+        return self.DropOff.objects.create(
+            user=self.user, hub=self.hub, plastic_type="BOTTLES",
+            weight_kg=Decimal(kg), status=self.DropOff.Status.VERIFIED,
+        )
+
+    def test_collection_amount_is_weight_times_price(self):
+        c = Collection.objects.create(
+            hub=self.hub, manufacturer=self.mfr,
+            weight_kg=Decimal("10.00"), price_per_kg=Decimal("30.00"),
+        )
+        self.assertEqual(c.amount, Decimal("300.00"))
+
+    def test_hub_current_load_is_verified_minus_collected(self):
+        self._verify("20.00")
+        self._verify("10.00")
+        self.assertEqual(self.hub.verified_kg, Decimal("30.00"))
+        self.assertEqual(self.hub.current_load_kg, Decimal("30.00"))
+
+        Collection.objects.create(
+            hub=self.hub, manufacturer=self.mfr,
+            weight_kg=Decimal("25.00"), price_per_kg=Decimal("30.00"),
+        )
+        self.assertEqual(self.hub.collected_kg, Decimal("25.00"))
+        self.assertEqual(self.hub.current_load_kg, Decimal("5.00"))  # 30 - 25

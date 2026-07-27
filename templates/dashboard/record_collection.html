@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Record a sale &middot; ECO-LINK{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-7 col-lg-6">
+    <div class="card shadow-sm border-0">
+      <div class="card-body p-4">
+        <h3 class="mb-1" style="color:#14532d;">Record a plastic sale</h3>
+        <p class="text-muted small mb-4">
+          Log a manufacturer collecting and paying for plastic from a hub. This empties
+          the hub (sets it Active again) and records the revenue.
+        </p>
+
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Hub</label>
+            {{ form.hub }}
+            {% for e in form.hub.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Manufacturer (buyer)</label>
+            {{ form.manufacturer }}
+            {% for e in form.manufacturer.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col">
+              <label class="form-label small fw-semibold">Weight collected (kg)</label>
+              {{ form.weight_kg }}
+              {% for e in form.weight_kg.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col">
+              <label class="form-label small fw-semibold">Price per kg (KES)</label>
+              {{ form.price_per_kg }}
+              {% for e in form.price_per_kg.errors %}<div class="text-danger small">{{ e }}</div>{% endfor %}
+            </div>
+          </div>
+
+          <div class="alert alert-success d-flex justify-content-between align-items-center">
+            <span>Amount to be paid (KES)</span>
+            <span class="fs-4 fw-bold" id="amountValue">0.00</span>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Notes (optional)</label>
+            {{ form.notes }}
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Record sale</button>
+            <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Live amount preview = weight x price.
+  (function () {
+    var w = document.getElementById("id_weight_kg");
+    var p = document.getElementById("id_price_per_kg");
+    var out = document.getElementById("amountValue");
+    function update() {
+      var amount = (parseFloat(w.value) || 0) * (parseFloat(p.value) || 0);
+      out.textContent = amount.toFixed(2);
+    }
+    w.addEventListener("input", update);
+    p.addEventListener("input", update);
+    update();
+  })();
+</script>
+{% endblock %}
