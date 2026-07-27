@@ -104,6 +104,33 @@ class UserManagerTests(TestCase):
             User.objects.create_superuser(email="y@example.com", password="x", is_superuser=False)
 
 
+class DeploySetupCommandTests(TestCase):
+    """The deploy-time setup must seed a usable hub and create the admin."""
+
+    def test_seeds_hub_and_creates_admin_from_env(self):
+        import os
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        from hubs.models import Hub
+
+        os.environ["DJANGO_SUPERUSER_EMAIL"] = "boss@example.com"
+        os.environ["DJANGO_SUPERUSER_PASSWORD"] = "StrongPass123!"
+        try:
+            call_command("deploy_setup", stdout=StringIO())
+        finally:
+            os.environ.pop("DJANGO_SUPERUSER_EMAIL", None)
+            os.environ.pop("DJANGO_SUPERUSER_PASSWORD", None)
+
+        # A usable, ACTIVE hub exists so the drop-off dropdown is never empty.
+        self.assertTrue(Hub.objects.filter(status=Hub.Status.ACTIVE).exists())
+        # The admin account was created.
+        admin = User.objects.get(email="boss@example.com")
+        self.assertTrue(admin.is_superuser)
+        self.assertTrue(admin.is_administrator)
+
+
 class HomePageTests(TestCase):
     def test_anonymous_sees_landing_page(self):
         response = self.client.get(reverse("home"))

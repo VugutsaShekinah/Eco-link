@@ -35,23 +35,29 @@ authorise it to read your repositories.
 2. Pick your **Eco-link** repository → **Connect**.
 3. Render finds `render.yaml` and shows a plan: one **web service** + one
    **PostgreSQL database**. Click **Apply**.
-4. Render now builds the app (installs packages, collects static files, runs
-   migrations) and starts it with Gunicorn. Watch the **Logs** tab; the first
-   build takes a few minutes.
+4. Render asks you to fill the two "sync: false" values — enter your desired
+   admin login:
+   - `DJANGO_SUPERUSER_EMAIL` → e.g. `admin@eco-link.co.ke`
+   - `DJANGO_SUPERUSER_PASSWORD` → a strong password
+5. Render now builds the app: installs packages, collects static files, runs
+   migrations, then **`deploy_setup`** which **seeds the collection hub, rewards,
+   and manufacturers and creates your admin account**. Watch the **Logs** tab.
 
-## Step 4 — Open your site
-When the service shows **Live**, click the URL at the top
-(`https://ecolink-XXXX.onrender.com`). You'll see the ECO-LINK landing page. 🎉
+> **Why this matters:** Render's **free tier has no Shell**, so you can't run
+> `seed_hubs`/`createsuperuser` by hand. `deploy_setup` runs automatically on
+> every deploy (it's idempotent — no duplicates), so the hub always exists and
+> the drop-off dropdown is never empty.
 
-## Step 5 — Create your admin login + demo data
-The fresh database has no users yet. In Render:
-1. Open your **ecolink** web service → **Shell** tab.
-2. Run:
-   ```bash
-   python manage.py createsuperuser      # make your admin account
-   python manage.py seed_demo            # hub, rewards, sample participants
-   ```
-3. Back on the site, log in with the admin you just created.
+## Step 4 — Open your site and log in
+When the service shows **Live**, open the URL
+(`https://ecolink-XXXX.onrender.com`). Log in with the admin email/password you
+set in Step 3. The Main Gate hub, rewards, and manufacturers are already there.
+
+### Add sample participants (optional)
+Want a populated leaderboard for a demo? In the Render **Environment** tab add
+`RUN_SEED_DEMO=1`, then **Manual Deploy → Deploy latest commit**. The deploy
+seeds a few named participants with drop-offs. Remove the variable afterwards so
+it doesn't re-run needlessly.
 
 ---
 

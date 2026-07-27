@@ -15,7 +15,8 @@ services:
     buildCommand: >-
       pip install -r requirements.txt &&
       python manage.py collectstatic --no-input &&
-      python manage.py migrate
+      python manage.py migrate &&
+      python manage.py deploy_setup
     startCommand: "gunicorn ecolink.wsgi:application"
     envVars:
       # Database connection is injected from the managed PostgreSQL above.
@@ -35,3 +36,9 @@ services:
         value: "3.12.7"
       - key: WEB_CONCURRENCY
         value: "4"
+      # Admin account created automatically on deploy. Set the values in the
+      # Render dashboard (Environment tab) — they are NOT stored in this file.
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
