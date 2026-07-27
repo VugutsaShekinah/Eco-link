@@ -1,8 +1,15 @@
-# Development-only tools (not needed to run the ECO-LINK app itself).
+# ECO-LINK development / tooling dependencies (not needed to run the app).
+# Install with:  pip install -r requirements-dev.txt
+# (this also pulls in the runtime requirements below)
+
 -r requirements.txt
 
-# Renders the study-notes HTML into ECO-LINK_Development_Notes.pdf
-xhtml2pdf>=0.2.17
+# Testing & coverage (report §4.5)
+coverage==7.15.2
 
-# Test coverage (report §4.5.1)
-coverage>=7.0
+# Screenshot capture for the report figures
+playwright==1.61.0
+
+# Study-notes PDF builder
+xhtml2pdf==0.2.17
+pypdf==6.14.2

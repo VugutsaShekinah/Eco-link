@@ -35,6 +35,10 @@ DEBUG = env("DEBUG", "True") == "True"
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
+# Origins trusted for HTTPS form submissions (required by Django 4+ behind a
+# proxy like Render). Wildcard covers whatever subdomain Render assigns.
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS", "https://*.onrender.com").split(",")
+
 
 # Application definition
 
@@ -56,6 +60,9 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise serves static files (CSS, the logo) in production without Nginx.
+    # Must sit directly after SecurityMiddleware.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -85,17 +92,27 @@ TEMPLATES = [
 WSGI_APPLICATION = "ecolink.wsgi.application"
 
 
-# Database — PostgreSQL (report §3.4). Credentials come from .env.
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DB_NAME", "ecolink_db"),
-        "USER": env("DB_USER", "postgres"),
-        "PASSWORD": env("DB_PASSWORD", ""),
-        "HOST": env("DB_HOST", "127.0.0.1"),
-        "PORT": env("DB_PORT", "5432"),
+# Database — PostgreSQL (report §3.4).
+# In production (e.g. Render) a single DATABASE_URL is provided; locally we use
+# the individual DB_* values from .env.
+import dj_database_url  # noqa: E402
+
+DATABASE_URL = env("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=True)
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": env("DB_NAME", "ecolink_db"),
+            "USER": env("DB_USER", "postgres"),
+            "PASSWORD": env("DB_PASSWORD", ""),
+            "HOST": env("DB_HOST", "127.0.0.1"),
+            "PORT": env("DB_PORT", "5432"),
+        }
+    }
 
 
 # Password validation
@@ -144,8 +161,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-# Where `collectstatic` gathers files for production serving (Nginx).
+# Where `collectstatic` gathers files for production serving.
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise serves compressed, cache-busted static files in production so no
+# separate web server (Nginx) is needed to host the CSS/logo on Render.
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
+    },
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

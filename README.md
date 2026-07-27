@@ -88,8 +88,10 @@ Open **http://127.0.0.1:8000/**.
 
 ## 🧪 Testing
 
+Testing and tooling packages live in `requirements-dev.txt`:
 ```bash
-python manage.py test                    # run all tests (54)
+pip install -r requirements-dev.txt      # coverage, playwright, notes builder
+python manage.py test                    # run all tests (61)
 python -m coverage run manage.py test    # run under coverage
 python -m coverage report                # per-file coverage table (~97%)
 python -m coverage html                  # browsable report in htmlcov/
@@ -142,8 +144,10 @@ docs/           Development notes (HTML source + PDF build)
 
 ## 🌐 Deployment
 
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** for production notes (Gunicorn + Nginx on
-Ubuntu, `collectstatic`, HTTPS, and environment configuration).
+- **Easy (recommended):** **[DEPLOY_RENDER.md](DEPLOY_RENDER.md)** — one-click
+  deploy to Render (free PostgreSQL + HTTPS) using the included `render.yaml`.
+- **Full production reference:** **[DEPLOYMENT.md](DEPLOYMENT.md)** — Gunicorn +
+  Nginx + PostgreSQL on an Ubuntu server.
 
 ---
 
