@@ -38,24 +38,37 @@ class Command(BaseCommand):
             call_command("seed_demo", stdout=self.stdout)
 
         # 2. Admin account from environment variables (if configured).
+        #    This is AUTHORITATIVE: the env email + password always work after a
+        #    deploy, so a forgotten password can never lock you out — just update
+        #    the values in the host dashboard and redeploy.
         email = os.environ.get("DJANGO_SUPERUSER_EMAIL")
         password = os.environ.get("DJANGO_SUPERUSER_PASSWORD")
 
         if not (email and password):
             self.stdout.write(
-                "No DJANGO_SUPERUSER_EMAIL/PASSWORD set - skipping admin creation."
+                "No DJANGO_SUPERUSER_EMAIL/PASSWORD set - skipping admin setup."
             )
             return
 
         User = get_user_model()
-        if User.objects.filter(email__iexact=email).exists():
-            self.stdout.write(f"Admin {email} already exists — nothing to do.")
-            return
+        user = User.objects.filter(email__iexact=email).first()
 
-        User.objects.create_superuser(
-            email=email,
-            password=password,
-            first_name=os.environ.get("DJANGO_SUPERUSER_FIRST_NAME", "Admin"),
-            last_name=os.environ.get("DJANGO_SUPERUSER_LAST_NAME", ""),
-        )
-        self.stdout.write(self.style.SUCCESS(f"Created admin account: {email}"))
+        if user is None:
+            User.objects.create_superuser(
+                email=email,
+                password=password,
+                first_name=os.environ.get("DJANGO_SUPERUSER_FIRST_NAME", "Admin"),
+                last_name=os.environ.get("DJANGO_SUPERUSER_LAST_NAME", ""),
+            )
+            self.stdout.write(self.style.SUCCESS(f"Created admin account: {email}"))
+        else:
+            # Ensure it's a full admin and reset the password to match the env.
+            user.role = User.Role.ADMIN
+            user.status = User.Status.ACTIVE
+            user.is_staff = True
+            user.is_superuser = True
+            user.set_password(password)
+            user.save()
+            self.stdout.write(self.style.SUCCESS(
+                f"Updated admin account {email} (password set from environment)."
+            ))
