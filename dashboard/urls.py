@@ -11,4 +11,6 @@ urlpatterns = [
     path("collections/new/", views.record_collection, name="record_collection"),
     path("users/", views.manage_users, name="manage_users"),
     path("users/<int:pk>/status/", views.set_user_status, name="set_user_status"),
+    path("users/<int:pk>/promote/", views.promote_user, name="promote_user"),
+    path("users/<int:pk>/demote/", views.demote_user, name="demote_user"),
 ]

@@ -18,7 +18,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from accounts.decorators import admin_required
+from accounts.decorators import admin_required, super_admin_required
 from accounts.models import User
 from dropoffs.models import DropOff
 from hubs.models import Collection, Hub
@@ -179,4 +179,39 @@ def set_user_status(request, pk):
         target.status = new_status
         target.save(update_fields=["status"])
         messages.success(request, f"{target.email} is now {valid[new_status]}.")
+    return redirect("manage_users")
+
+
+@super_admin_required
+@require_POST
+def promote_user(request, pk):
+    """Super Admin only: make a member into an Admin."""
+    target = get_object_or_404(User, pk=pk)
+    if target.is_administrator:
+        messages.info(request, f"{target.email} is already an admin.")
+    else:
+        target.role = User.Role.ADMIN
+        target.status = User.Status.ACTIVE
+        target.is_staff = True
+        target.save(update_fields=["role", "status", "is_staff"])
+        messages.success(request, f"{target.email} is now an Admin.")
+    return redirect("manage_users")
+
+
+@super_admin_required
+@require_POST
+def demote_user(request, pk):
+    """Super Admin only: remove an Admin's access (back to a regular member)."""
+    target = get_object_or_404(User, pk=pk)
+    if target == request.user:
+        messages.error(request, "You can't change your own admin access here.")
+    elif target.is_superuser:
+        messages.error(request, "You can't demote a Super Admin here.")
+    elif not target.is_administrator:
+        messages.info(request, f"{target.email} is not an admin.")
+    else:
+        target.role = User.Role.STUDENT
+        target.is_staff = False
+        target.save(update_fields=["role", "is_staff"])
+        messages.success(request, f"{target.email} is now a regular member.")
     return redirect("manage_users")

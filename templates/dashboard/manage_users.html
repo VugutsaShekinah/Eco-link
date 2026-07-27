@@ -7,14 +7,18 @@
   <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-success btn-sm">← Back to dashboard</a>
 </div>
 
+{% if user.is_super_admin %}
+  <p class="text-muted small">You're a <strong>Super Admin</strong> — you can promote members to Admin or remove admin access.</p>
+{% endif %}
+
 <div class="card border-0 shadow-sm">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
       <thead class="table-light">
         <tr>
-          <th>Email</th><th>Name</th><th>Role</th>
+          <th>Email</th><th>Name</th><th>Access</th>
           <th class="text-end">Drop-offs</th><th class="text-end">Points</th>
-          <th>Status</th><th></th>
+          <th>Status</th><th class="text-end">Role action</th>
         </tr>
       </thead>
       <tbody>
@@ -22,25 +26,51 @@
           <tr>
             <td>{{ u.email }}</td>
             <td>{{ u.get_full_name|default:"—" }}</td>
-            <td>{{ u.get_role_display }}</td>
+            <td>
+              <span class="badge {% if u.is_super_admin %}bg-danger{% elif u.is_administrator %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
+                {{ u.access_level }}
+              </span>
+            </td>
             <td class="text-end">{{ u.dropoff_count }}</td>
             <td class="text-end">{{ u.eco_points_balance }}</td>
-            {% if u.is_administrator %}
-              <td colspan="2"><span class="badge bg-warning text-dark">Administrator</span></td>
-            {% else %}
-              <td colspan="2">
-                <form method="post" action="{% url 'set_user_status' u.pk %}"
-                      class="d-flex gap-2 justify-content-end">
+
+            <!-- Status: editable for members, not for admins -->
+            <td>
+              {% if u.is_administrator %}
+                <span class="text-muted small">—</span>
+              {% else %}
+                <form method="post" action="{% url 'set_user_status' u.pk %}" class="d-flex gap-2">
                   {% csrf_token %}
-                  <select name="status" class="form-select form-select-sm" style="max-width:150px;">
+                  <select name="status" class="form-select form-select-sm" style="max-width:130px;">
                     {% for value, label in status_choices %}
                       <option value="{{ value }}" {% if u.status == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                   </select>
                   <button type="submit" class="btn btn-outline-success btn-sm">Save</button>
                 </form>
-              </td>
-            {% endif %}
+              {% endif %}
+            </td>
+
+            <!-- Role action: Super Admin only -->
+            <td class="text-end">
+              {% if user.is_super_admin %}
+                {% if not u.is_administrator %}
+                  <form method="post" action="{% url 'promote_user' u.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success btn-sm">Make Admin</button>
+                  </form>
+                {% elif not u.is_superuser and u.pk != user.pk %}
+                  <form method="post" action="{% url 'demote_user' u.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">Remove Admin</button>
+                  </form>
+                {% else %}
+                  <span class="text-muted small">—</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted small">—</span>
+              {% endif %}
+            </td>
           </tr>
         {% empty %}
           <tr><td colspan="7" class="text-center text-muted py-4">No users yet.</td></tr>

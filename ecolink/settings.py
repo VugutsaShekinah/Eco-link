@@ -142,13 +142,24 @@ MESSAGE_TAGS = {
 }
 
 
-# Email — console backend in development prints messages to the terminal, so
-# manufacturer pickup alerts work without an SMTP server (§5.4.3). Set a real
-# SMTP backend via EMAIL_BACKEND in production.
-EMAIL_BACKEND = env(
-    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
-)
-DEFAULT_FROM_EMAIL = "ECO-LINK <noreply@eco-link.co.ke>"
+# Email.
+# By default (dev) the console backend prints emails — including password-reset
+# links and manufacturer pickup alerts — to the terminal/logs, so nothing extra
+# is needed to test them. To send REAL emails (e.g. so "forgot password" reaches
+# users), set the SMTP variables below in the host dashboard; the backend then
+# switches to SMTP automatically.
+EMAIL_HOST = env("EMAIL_HOST", "")
+if EMAIL_HOST:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_PORT = int(env("EMAIL_PORT", "587"))
+    EMAIL_HOST_USER = env("EMAIL_HOST_USER", "")
+    EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", "")
+    EMAIL_USE_TLS = env("EMAIL_USE_TLS", "True") == "True"
+else:
+    EMAIL_BACKEND = env(
+        "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+    )
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", "ECO-LINK <noreply@eco-link.co.ke>")
 
 
 # Internationalization — ECO-LINK operates in Nairobi, Kenya.

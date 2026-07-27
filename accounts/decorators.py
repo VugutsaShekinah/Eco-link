@@ -25,3 +25,18 @@ def admin_required(view_func):
         return view_func(request, *args, **kwargs)
 
     return _wrapped
+
+
+def super_admin_required(view_func):
+    """Allow only Super Admins (admin + superuser) — e.g. managing other admins."""
+
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("login")
+        if not request.user.is_super_admin:
+            messages.error(request, "Only a Super Admin can do that.")
+            return redirect("dashboard")
+        return view_func(request, *args, **kwargs)
+
+    return _wrapped

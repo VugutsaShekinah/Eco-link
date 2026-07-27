@@ -14,6 +14,21 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import User
 
 
+class ProfileForm(forms.ModelForm):
+    """Let a logged-in user edit their own name and phone number."""
+
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name", "phone_number")
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "phone_number": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "e.g. +254700000000"}
+            ),
+        }
+
+
 # The three roles a member of the public may self-register as.
 PUBLIC_ROLE_CHOICES = [
     (User.Role.STUDENT, "Student"),

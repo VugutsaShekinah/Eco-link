@@ -110,3 +110,35 @@ main {
 footer {
     flex-shrink: 0;
 }
+
+/* ---------- Auth forms (Django's built-in password forms) ---------- */
+.auth-form input {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.4rem;
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+.auth-form label {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.auth-form .helptext {
+    display: block;
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+}
+.auth-form ul {
+    color: #6c757d;
+    font-size: 0.8rem;
+    padding-left: 1.1rem;
+}
+.auth-form .errorlist {
+    color: #dc3545;
+    list-style: none;
+    padding-left: 0;
+    font-size: 0.85rem;
+}

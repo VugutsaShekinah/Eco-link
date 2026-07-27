@@ -11,7 +11,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 
-from .forms import RegistrationForm
+from .forms import ProfileForm, RegistrationForm
 from .models import User
 
 
@@ -74,3 +74,18 @@ def dashboard(request):
         "my_rank": participant_rank(request.user),
     }
     return render(request, "accounts/dashboard.html", context)
+
+
+@login_required
+def profile(request):
+    """View and edit your own profile (name, phone); shows role & access level."""
+    if request.method == "POST":
+        form = ProfileForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated.")
+            return redirect("profile")
+    else:
+        form = ProfileForm(instance=request.user)
+
+    return render(request, "accounts/profile.html", {"form": form, "user": request.user})

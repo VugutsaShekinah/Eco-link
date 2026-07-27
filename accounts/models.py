@@ -99,6 +99,20 @@ class User(AbstractUser):
         return self.role == self.Role.ADMIN
 
     @property
+    def is_super_admin(self):
+        """The top tier: an administrator who can also manage other admins."""
+        return self.is_administrator and self.is_superuser
+
+    @property
+    def access_level(self):
+        """Human-friendly access tier shown on the profile page."""
+        if self.is_super_admin:
+            return "Super Admin"
+        if self.is_administrator:
+            return "Admin"
+        return "Member"
+
+    @property
     def display_name(self):
         """
         Friendly name for greetings: full name if set, else first name, else the
