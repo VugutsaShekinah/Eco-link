@@ -27,13 +27,15 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # 1. Baseline data so the app works immediately.
-        call_command("seed_hubs")
-        call_command("seed_rewards")
+        #    Route sub-command output through our own stdout (keeps test output
+        #    clean; still visible in the deploy logs).
+        call_command("seed_hubs", stdout=self.stdout)
+        call_command("seed_rewards", stdout=self.stdout)
 
         # Optionally load sample participants + drop-offs for a populated demo
         # (set RUN_SEED_DEMO=1 in the environment).
         if os.environ.get("RUN_SEED_DEMO") == "1":
-            call_command("seed_demo")
+            call_command("seed_demo", stdout=self.stdout)
 
         # 2. Admin account from environment variables (if configured).
         email = os.environ.get("DJANGO_SUPERUSER_EMAIL")

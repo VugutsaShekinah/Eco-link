@@ -131,6 +131,28 @@ class DeploySetupCommandTests(TestCase):
         self.assertTrue(admin.is_administrator)
 
 
+class MakeAdminCommandTests(TestCase):
+    def test_promotes_existing_user(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+
+        user = User.objects.create_user(
+            email="p@example.com", password="x", role=User.Role.STUDENT
+        )
+        call_command("make_admin", "p@example.com", stdout=StringIO())
+        user.refresh_from_db()
+        self.assertTrue(user.is_administrator)
+        self.assertTrue(user.is_staff)
+        self.assertTrue(user.is_superuser)
+
+    def test_errors_for_unknown_email(self):
+        from django.core.management import CommandError, call_command
+
+        with self.assertRaises(CommandError):
+            call_command("make_admin", "nobody@example.com")
+
+
 class HomePageTests(TestCase):
     def test_anonymous_sees_landing_page(self):
         response = self.client.get(reverse("home"))
