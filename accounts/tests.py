@@ -228,3 +228,66 @@ class AuthenticationTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(reverse("logout"))
         self.assertRedirects(response, reverse("login"))
+
+
+class AccessLevelTests(TestCase):
+    def test_member_admin_superadmin_levels(self):
+        member = User.objects.create_user(email="mem@example.com", password="x")
+        self.assertEqual(member.access_level, "Member")
+        self.assertFalse(member.is_super_admin)
+
+        admin = User.objects.create_user(
+            email="adm@example.com", password="x", role=User.Role.ADMIN
+        )
+        self.assertEqual(admin.access_level, "Admin")
+        self.assertFalse(admin.is_super_admin)
+
+        superadmin = User.objects.create_superuser(email="sup@example.com", password="x")
+        self.assertEqual(superadmin.access_level, "Super Admin")
+        self.assertTrue(superadmin.is_super_admin)
+
+
+class ProfileTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="me@example.com", password="pass12345", first_name="M", last_name="E"
+        )
+
+    def test_requires_login(self):
+        response = self.client.get(reverse("profile"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)
+
+    def test_edit_updates_name_and_phone(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("profile"), {
+            "first_name": "Newname", "last_name": "Newlast",
+            "phone_number": "+254700111222",
+        })
+        self.assertRedirects(response, reverse("profile"))
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.first_name, "Newname")
+        self.assertEqual(self.user.phone_number, "+254700111222")
+
+
+class ForgotPasswordTests(TestCase):
+    def test_reset_request_sends_email(self):
+        from django.core import mail
+
+        User.objects.create_user(
+            email="forgot@example.com", password="oldpass123",
+            first_name="For", last_name="Got",
+        )
+        response = self.client.post(
+            reverse("password_reset"), {"email": "forgot@example.com"}
+        )
+        self.assertRedirects(response, "/password-reset/sent/")
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn("reset", mail.outbox[0].subject.lower())
+        # The email contains a reset link.
+        self.assertIn("/reset/", mail.outbox[0].body)
+
+    def test_change_password_page_requires_login(self):
+        response = self.client.get(reverse("password_change"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response.url)

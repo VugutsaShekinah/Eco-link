@@ -183,3 +183,54 @@ class CsvExportTests(TestCase):
         self.client.force_login(self.student)
         resp = self.client.get(reverse("export_dropoffs_csv"))
         self.assertRedirects(resp, reverse("dashboard"))
+
+
+class PromoteDemoteTests(TestCase):
+    def setUp(self):
+        # create_superuser => role ADMIN + is_superuser => Super Admin
+        self.super_admin = User.objects.create_superuser(
+            email="super@example.com", password="x"
+        )
+        self.admin = User.objects.create_user(
+            email="admin@example.com", password="x",
+            role=User.Role.ADMIN, is_staff=True,
+        )
+        self.member = User.objects.create_user(
+            email="member@example.com", password="x", role=User.Role.STUDENT,
+        )
+
+    def test_super_admin_can_promote_member(self):
+        self.client.force_login(self.super_admin)
+        resp = self.client.post(reverse("promote_user", args=[self.member.pk]))
+        self.assertRedirects(resp, reverse("manage_users"))
+        self.member.refresh_from_db()
+        self.assertTrue(self.member.is_administrator)
+        self.assertTrue(self.member.is_staff)
+
+    def test_super_admin_can_demote_admin(self):
+        self.client.force_login(self.super_admin)
+        self.client.post(reverse("demote_user", args=[self.admin.pk]))
+        self.admin.refresh_from_db()
+        self.assertFalse(self.admin.is_administrator)
+        self.assertFalse(self.admin.is_staff)
+
+    def test_regular_admin_cannot_promote(self):
+        """A plain Admin (not superuser) is blocked by super_admin_required."""
+        self.client.force_login(self.admin)
+        resp = self.client.post(reverse("promote_user", args=[self.member.pk]))
+        self.assertRedirects(resp, reverse("dashboard"))
+        self.member.refresh_from_db()
+        self.assertFalse(self.member.is_administrator)
+
+    def test_cannot_demote_self(self):
+        self.client.force_login(self.super_admin)
+        self.client.post(reverse("demote_user", args=[self.super_admin.pk]))
+        self.super_admin.refresh_from_db()
+        self.assertTrue(self.super_admin.is_administrator)  # unchanged
+
+    def test_cannot_demote_another_super_admin(self):
+        other = User.objects.create_superuser(email="super2@example.com", password="x")
+        self.client.force_login(self.super_admin)
+        self.client.post(reverse("demote_user", args=[other.pk]))
+        other.refresh_from_db()
+        self.assertTrue(other.is_administrator)  # unchanged
